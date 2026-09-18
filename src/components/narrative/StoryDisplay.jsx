@@ -17,41 +17,44 @@ export default function StoryDisplay({ activeModalText, onAdvance }) {
 activeModalText && (
     <ModalLayer>
       <div data-testid="story-backdrop" onClick={(event) => { if (event.target === event.currentTarget) advance(); }} className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-40">
-        <div role="dialog" aria-modal="true" aria-labelledby="story-title" className="w-full max-w-xl max-h-full overflow-y-auto bg-[#121622] border-2 border-[#243048] rounded-2xl p-6 shadow-2xl space-y-4">
-          {activeModalText.image && <img src={activeModalText.image.src} alt={activeModalText.image.alt} className="w-full aspect-video object-cover rounded-xl" />}
-          <div className="flex justify-between items-start border-b border-neutral-800 pb-2">
-            <h3 id="story-title" className="text-sm font-bold text-neutral-100">{activeModalText.title}</h3>
+        <div role="dialog" aria-modal="true" aria-labelledby="story-title" className="story-dialog w-full overflow-y-auto">
+          {activeModalText.image && <img src={activeModalText.image.src} alt={activeModalText.image.alt} className="story-dialog__scene" />}
+          <div className="story-dialog__heading">
+            <span className="story-dialog__kicker">INCIDENT LOG</span>
+            <div className="story-dialog__title-row">
+              <h3 id="story-title">{activeModalText.title}</h3>
             {activeModalText.tag && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+              <span className="story-dialog__tag">
                 {activeModalText.tag}
               </span>
             )}
+            </div>
           </div>
           {activeModalText.illustration && (
-            <figure className="rounded-xl bg-neutral-950 p-2">
-              <img src={activeModalText.illustration.img} alt={activeModalText.illustration.name} className="w-full h-32 object-contain" />
-              <figcaption className="text-xs text-neutral-400 text-center mt-2">{activeModalText.illustration.name}</figcaption>
+            <figure className="story-illustration">
+              <img src={activeModalText.illustration.img} alt={activeModalText.illustration.name} />
+              <figcaption>{activeModalText.illustration.name}</figcaption>
             </figure>
           )}
           {activeModalText.rewardItems?.length > 0 && (
-            <div className={`grid ${activeModalText.rewardItems.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-3`} aria-label="획득한 도구">
+            <div className={`story-rewards ${activeModalText.rewardItems.length === 1 ? 'story-rewards--single' : ''}`} aria-label="획득한 도구">
               {activeModalText.rewardItems.map((item) => (
-                <figure key={item.id} className="rounded-xl bg-neutral-950 border border-amber-500/40 p-2">
-                  <img src={item.img} alt={item.name} className="w-full h-40 object-contain rounded-lg" />
-                  <figcaption className="text-xs text-amber-300 text-center mt-2">획득 · {item.name}</figcaption>
+                <figure key={item.id} className="story-reward-card">
+                  <img src={item.img} alt={item.name} />
+                  <figcaption><span>ACQUIRED</span> {item.name}</figcaption>
                 </figure>
               ))}
             </div>
           )}
-          <p className="text-sm text-neutral-300 leading-relaxed font-serif whitespace-pre-line">
+          <p className="story-dialog__copy">
             <TypedText text={text} count={count} />
           </p>
           <button
             onClick={advance}
             data-typing={done ? 'complete' : 'typing'}
-            className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-bold text-xs transition cursor-pointer"
+            className="story-dialog__advance"
           >
-            &gt;다음
+            <span>[다음]</span><b aria-hidden="true">›</b>
           </button>
         </div>
       </div>

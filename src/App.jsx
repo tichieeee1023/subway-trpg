@@ -16,6 +16,7 @@ import { useGameSettings } from './hooks/useGameSettings.js';
 import { useEndingCollection } from './hooks/useEndingCollection.js';
 import CollectionModal from './components/modal/CollectionModal.jsx';
 import MobileInventoryDock from './components/sheet/MobileInventoryDock.jsx';
+import CreditsModal from './components/modal/CreditsModal.jsx';
 import { getRelevantItemIds } from './utils/itemRelevance.js';
 
 const OPENING_STORAGE_KEY = 'subway-opening-seen-v1';
@@ -75,7 +76,7 @@ export default function App() {
       <DiceModal {...game} disableEffects={settings.disableEffects} skipDiceAnimation={settings.skipDiceAnimation} />
       <StoryDisplay activeModalText={game.activeModalText} onAdvance={game.advanceStory} />
       </>}
-      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onClose={closeUtility} />}
+      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} /> : utility === 'credits' ? <CreditsModal onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onCredits={() => setUtility('credits')} onClose={closeUtility} />}
     </MainLayout>
   );
 }

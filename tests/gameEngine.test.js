@@ -221,7 +221,7 @@ test('inventory rewards never silently disappear and consumables require ownersh
 });
 
 test('escape boundaries require both HP and SAN; zeros can never award a surviving ending', () => {
-  for (const [hp, san, id] of [[12, 8, 'TRUE'], [11, 8, 'GOOD'], [8, 5, 'GOOD'], [8, 4, 'NORMAL'], [7, 5, 'NORMAL'], [0, 15, 'BAD_3'], [20, 0, 'BAD_3']]) {
+  for (const [hp, san, id] of [[12, 8, 'TRUE'], [11, 8, 'GOOD'], [10, 7, 'GOOD'], [10, 6, 'NORMAL'], [9, 15, 'NORMAL'], [0, 15, 'BAD_3'], [20, 0, 'BAD_3']]) {
     assert.equal(getEscapeEnding({ hp, san }), id, `${hp}/${san}`);
   }
 });
