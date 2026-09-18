@@ -11,7 +11,7 @@ await page.addInitScript(() => {
 });
 const drain = async () => {
   while (await page.getByTestId('story-backdrop').count()) {
-    await page.getByRole('button', { name: '>다음', exact: true }).click();
+    await page.getByRole('button', { name: '[다음]', exact: true }).click();
     await page.waitForTimeout(30);
   }
 };
@@ -19,7 +19,7 @@ const investigate = async (name) => {
   await page.getByRole('button', { name }).click();
   if (await page.getByTestId('dice-backdrop').count()) {
     await page.getByRole('button', { name: '운명의 D20 주사위 굴리기' }).click();
-    await page.getByRole('button', { name: '>다음', exact: true }).click();
+    await page.getByRole('button', { name: '[다음]', exact: true }).click();
   }
   await drain();
 };
@@ -65,7 +65,7 @@ try {
   await page.getByRole('button', { name: '이 사원증으로 탑승' }).click();
   await page.getByRole('button', { name: 'D20 주사위 굴려 피로도 확정' }).click();
   await page.getByRole('button', { name: '운명의 D20 주사위 굴리기' }).click();
-  await page.getByRole('button', { name: '>다음', exact: true }).click(); await drain();
+  await page.getByRole('button', { name: '[다음]', exact: true }).click(); await drain();
   await check('stage1');
   for (const name of [/④ 선반/, /③ 출입문/, /⑥ 바닥/]) await investigate(name);
   await check('stage2');

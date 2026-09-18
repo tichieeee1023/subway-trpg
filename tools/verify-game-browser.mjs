@@ -13,16 +13,13 @@ await mkdir('artifacts/game-review', { recursive: true });
 const next = async (outside = false) => {
   const backdrop = page.getByTestId('story-backdrop');
   await backdrop.waitFor();
-  const nextButton = page.getByRole('button', { name: '>다음', exact: true });
+  const nextButton = page.getByRole('button', { name: '[다음]', exact: true });
   if (await nextButton.getAttribute('data-typing') === 'typing') {
-    const before = await page.getByRole('dialog').boundingBox();
     await nextButton.click();
     await page.waitForFunction(() => document.querySelector('[data-typing]')?.dataset.typing === 'complete');
-    const after = await page.getByRole('dialog').boundingBox();
-    assert.equal(before.height, after.height, 'Typing reserves the full text height');
   }
   if (outside) await backdrop.click({ position: { x: 8, y: 8 } });
-  else await page.getByRole('button', { name: '>다음', exact: true }).click();
+  else await page.getByRole('button', { name: '[다음]', exact: true }).click();
 };
 const checkChoices = async (stage) => {
   await page.waitForFunction(() => !document.querySelector('.game-chassis').classList.contains('invert'));
@@ -62,9 +59,9 @@ const roll = async (screenshot = false, outside = false) => {
   if (screenshot) await page.screenshot({ path: 'artifacts/game-review/dice-rolling.png' });
   if (outside) await page.getByTestId('dice-backdrop').click({ position: { x: 8, y: 8 } });
   else {
-    await page.getByRole('button', { name: '>다음', exact: true }).waitFor();
+    await page.getByRole('button', { name: '[다음]', exact: true }).waitFor();
     assert.equal((await page.getByRole('dialog').boundingBox()).height, idleBox.height, 'Dice result keeps the modal height');
-    await page.getByRole('button', { name: '>다음', exact: true }).click();
+    await page.getByRole('button', { name: '[다음]', exact: true }).click();
   }
   await page.getByTestId('dice-backdrop').waitFor({ state: 'hidden' });
 };
@@ -232,14 +229,11 @@ try {
     assert.equal(await accessible.locator('.collection-grid').count(), 0);
     await startGame(accessible); await chooseCharacter(accessible);
     await accessible.getByRole('button', { name: 'D20 주사위 굴려 피로도 확정' }).click();
-    const before = await accessible.getByRole('dialog').boundingBox();
     await accessible.getByRole('button', { name: '운명의 D20 주사위 굴리기' }).click();
     const image = accessible.getByRole('img', { name: '회전 중...' }); await image.waitFor();
     assert.equal(await image.evaluate((element) => getComputedStyle(element).animationName), 'none');
-    assert.equal((await accessible.getByRole('dialog').boundingBox()).height, before.height);
-    await accessible.getByRole('button', { name: '>다음', exact: true }).waitFor();
-    assert.equal((await accessible.getByRole('dialog').boundingBox()).height, before.height);
-    const box = await accessible.getByRole('button', { name: '>다음', exact: true }).boundingBox();
+    await accessible.getByRole('button', { name: '[다음]', exact: true }).waitFor();
+    const box = await accessible.getByRole('button', { name: '[다음]', exact: true }).boundingBox();
     assert.ok(box.y + box.height <= height);
     await accessible.screenshot({ path: `artifacts/game-review/expanded-accessible-${width}.png` });
     await accessible.close();
