@@ -30,7 +30,7 @@ const checkChoices = async (stage) => {
     await page.setViewportSize({ width, height });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForFunction(() => document.querySelector('.scene-overview').open);
-    assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), false, `${stage}: scene explanation starts collapsed at ${width}x${height}`);
+    assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), width >= 701, `${stage}: scene explanation matches the desktop/mobile layout at ${width}x${height}`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${stage}: horizontal overflow at ${width}x${height}`);
     await page.screenshot({ path: `artifacts/game-review/choices-${stage}-${width}.png`, fullPage: true });
     for (const button of await page.locator('.game-narrative button').all()) {
@@ -38,13 +38,14 @@ const checkChoices = async (stage) => {
       assert.ok(box && box.y >= 0 && box.y + box.height <= height, `${stage}: clipped choice ${await button.innerText()} at ${width}x${height} (${JSON.stringify(box)})`);
     }
   }
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('.scene-description > summary').click();
   assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), true, `${stage}: scene explanation opens on request`);
   await page.locator('.scene-overview > summary').click();
   assert.equal(await page.locator('.scene-overview').evaluate((element) => element.open), false, `${stage}: scene accordion closes`);
   await page.locator('.scene-overview > summary').click();
   assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), false, `${stage}: closing scene accordion resets its explanation`);
+  await page.setViewportSize({ width: 1440, height: 900 });
 };
 const roll = async (screenshot = false, outside = false) => {
   await page.getByTestId('dice-backdrop').waitFor();

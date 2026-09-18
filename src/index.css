@@ -103,6 +103,7 @@ h1, h2, h3, p { margin: 0; }
 .scene-description { border: 1px solid #33434c; background: #0a1116; }
 .scene-description summary { padding: 9px 10px; cursor: pointer; color: #a9c3c6; font-size: 14px; font-weight: 600; }
 .game-narrative .scene-description p { margin: 0; padding: 2px 10px 12px; font-size: 18px; line-height: 1.65; white-space: pre-line; color: #cbd2d5; }
+@media (min-width: 701px) { .scene-description > summary { display: none; } }
 @container (min-width: 760px) {
   .scene-overview-content { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; }
 }
@@ -228,6 +229,7 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
   .game-narrative .grid button span { line-height: 1.45; }
   .game-narrative .grid button > span:first-child { font-size: 15px; }
   .game-narrative .grid button > span:last-child { font-size: 14px; }
+  .scene-description > summary { display: list-item; }
   .exploration-hud { gap: 0; }
   .location-readout { padding: 8px 10px; }
   .location-readout strong { font-size: 17px; }
