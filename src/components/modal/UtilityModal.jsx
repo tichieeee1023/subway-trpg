@@ -41,6 +41,8 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <p>암전 시 화면 반전, 점멸, 주사위 회전과 움직이는 캔버스 효과를 끕니다. 주사위 결과와 게임 진행은 그대로 유지됩니다.</p>
             <label className="setting-checkbox"><input type="checkbox" checked={settings.skipDiceAnimation} onChange={(event) => updateSettings({ skipDiceAnimation: event.target.checked })} /><span>주사위 연출 생략</span></label>
             <p>다회차에서는 주사위가 구르는 시간을 건너뛰고 결과를 바로 표시합니다.</p>
+            <label className="setting-checkbox"><input type="checkbox" checked={settings.easyMode} onChange={(event) => updateSettings({ easyMode: event.target.checked })} /><span>이지 모드 · 생존 반응 표시</span></label>
+            <p>지금 위기에 도움이 될 수 있는 보유 도구에 작은 점등 표시를 붙입니다. 정답이나 사용 방법은 알려주지 않습니다.</p>
             <p className="setting-note">설정은 이 브라우저에 자동 저장됩니다.</p>
           </> : kind === 'hint' ? <div className="stage-hint-content"><span className="stage-hint-icon" aria-hidden="true">💡</span><p>{STAGE_HINTS[stage] ?? '아직 보이지 않는 길에도, 지나온 흔적은 남아 있습니다.'}</p></div> : <div className="help-content">
             <h3>1. 캐릭터를 선택하세요</h3><p>캐릭터마다 능력치와 시작 도구가 다릅니다. 컨디션 주사위를 굴리면 탐사가 시작됩니다.</p>

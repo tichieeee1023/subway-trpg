@@ -4,7 +4,7 @@ import InventorySlot from './InventorySlot.jsx';
 import GameFooter from '../layout/GameFooter.jsx';
 import ResponsivePanel from '../layout/ResponsivePanel.jsx';
 
-export default function CharacterSheet({ player, handleUseItem, canUseItems }) {
+export default function CharacterSheet({ player, handleUseItem, canUseItems, highlightedItemIds }) {
   return (
 <aside className="character-sheet bg-[#0e1118] border-r border-[#1c2333] p-4 flex flex-col justify-between overflow-y-auto">
       <ResponsivePanel title="캐릭터 · 능력치 · 소지품">
@@ -17,7 +17,7 @@ export default function CharacterSheet({ player, handleUseItem, canUseItems }) {
           <StatGrid player={player} />
 
           {/* 소지품 인벤토리 */}
-          <InventorySlot player={player} handleUseItem={handleUseItem} canUseItems={canUseItems} />
+          <InventorySlot player={player} handleUseItem={handleUseItem} canUseItems={canUseItems} highlightedItemIds={highlightedItemIds} />
 
         </div>
 

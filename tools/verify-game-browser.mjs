@@ -30,7 +30,7 @@ const checkChoices = async (stage) => {
     await page.setViewportSize({ width, height });
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForFunction(() => document.querySelector('.scene-overview').open);
-    assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), width >= 701, `${stage}: scene explanation matches the desktop/mobile layout at ${width}x${height}`);
+    assert.equal(await page.locator('.scene-description').evaluate((element) => element.open), width >= 701 && height >= 501, `${stage}: scene explanation matches the desktop/mobile layout at ${width}x${height}`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${stage}: horizontal overflow at ${width}x${height}`);
     await page.screenshot({ path: `artifacts/game-review/choices-${stage}-${width}.png`, fullPage: true });
     for (const button of await page.locator('.game-narrative button').all()) {

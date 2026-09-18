@@ -15,6 +15,8 @@ import UtilityModal from './components/modal/UtilityModal.jsx';
 import { useGameSettings } from './hooks/useGameSettings.js';
 import { useEndingCollection } from './hooks/useEndingCollection.js';
 import CollectionModal from './components/modal/CollectionModal.jsx';
+import MobileInventoryDock from './components/sheet/MobileInventoryDock.jsx';
+import { getRelevantItemIds } from './utils/itemRelevance.js';
 
 const OPENING_STORAGE_KEY = 'subway-opening-seen-v1';
 
@@ -32,6 +34,7 @@ export default function App() {
   const { collected, unlockAllEndings } = useEndingCollection(game.endingData);
   const collectionUnlocked = collected.length > 0;
   const collectionComplete = collected.length === 6;
+  const highlightedItemIds = settings.easyMode ? getRelevantItemIds(game.stage, game.ventPhase) : [];
   const openCollection = () => { if (collectionUnlocked) setUtility('collection'); };
   useEffect(() => {
     if (!import.meta.env.DEV || showOpening || (!showIntro && game.stage !== 'SURVEY') || utility) return;
@@ -64,10 +67,11 @@ export default function App() {
       {game.stage === 'ENDING' ? (
         <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} />
       ) : <div className="game-columns flex-1 flex overflow-hidden">
-        <CharacterSheet player={game.player} handleUseItem={game.handleUseItem} canUseItems={game.stage.startsWith('STAGE_') && !game.activeModalText && !game.diceModal.isOpen} />
+        <CharacterSheet player={game.player} handleUseItem={game.handleUseItem} canUseItems={game.stage.startsWith('STAGE_') && !game.activeModalText && !game.diceModal.isOpen} highlightedItemIds={highlightedItemIds} />
         <GameNarrative {...game} />
         <GameConsole stage={game.stage} logs={game.logs} />
       </div>}
+      {game.stage.startsWith('STAGE_') && <MobileInventoryDock player={game.player} handleUseItem={game.handleUseItem} canUseItems={!game.activeModalText && !game.diceModal.isOpen} highlightedItemIds={highlightedItemIds} />}
       <DiceModal {...game} disableEffects={settings.disableEffects} skipDiceAnimation={settings.skipDiceAnimation} />
       <StoryDisplay activeModalText={game.activeModalText} onAdvance={game.advanceStory} />
       </>}

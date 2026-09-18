@@ -9,8 +9,8 @@ export default function ActionPanel({ points, examinedPoints, ap, onExamine, col
     const done = examinedPoints.includes(point.id);
     return (
       <button key={point.id} disabled={done || ap <= 0} onClick={() => onExamine(point.id)}
-        className={`${compact ? 'p-2.5' : 'p-3'} rounded-xl border text-left flex flex-col justify-between transition-all ${
-          done ? 'bg-neutral-950/40 border-neutral-900 text-neutral-600 cursor-not-allowed'
+        className={`choice-card ${compact ? 'p-2.5' : 'p-3'} rounded-xl border text-left flex flex-col justify-between transition-all ${
+          done ? 'is-complete bg-neutral-950/40 border-neutral-900 text-neutral-600 cursor-not-allowed'
             : `bg-[#141926] hover:bg-[#1c2336] border-[#222b3f] ${colors.border} text-neutral-200 cursor-pointer`
         }`}>
         <span className="text-xs font-bold">{point.title}</span>

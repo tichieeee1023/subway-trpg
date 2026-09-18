@@ -5,8 +5,8 @@ export function useGameSettings() {
   const [settings, setSettings] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(key) || '{}');
-      return { textSize: saved.textSize === 'large' ? 'large' : 'normal', disableEffects: saved.disableEffects === true, skipDiceAnimation: saved.skipDiceAnimation === true };
-    } catch { return { textSize: 'normal', disableEffects: false, skipDiceAnimation: false }; }
+      return { textSize: saved.textSize === 'large' ? 'large' : 'normal', disableEffects: saved.disableEffects === true, skipDiceAnimation: saved.skipDiceAnimation === true, easyMode: saved.easyMode === true };
+    } catch { return { textSize: 'normal', disableEffects: false, skipDiceAnimation: false, easyMode: false }; }
   });
   useLayoutEffect(() => {
     document.documentElement.dataset.textSize = settings.textSize;

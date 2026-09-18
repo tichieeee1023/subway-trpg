@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 
-const isDesktopViewport = () => window.matchMedia('(min-width: 701px)').matches;
+const isDesktopViewport = () => window.matchMedia('(min-width: 701px) and (min-height: 501px)').matches;
 
 const descriptions = {
   STAGE_1_CAR6: '형광등이 팝콘처럼 터지며 암전되었다. 승객들은 온데간데없고 바닥엔 옷가지와 이어폰만 널려 있다.\n7호차 연결문 너머에서 "질척... 질척..." 살덩이를 끄는 소리가 다가온다. 3번의 행동력 내에 탈출 수단을 확보해야 한다.',
@@ -15,8 +15,8 @@ export default function SceneOverview({ stage }) {
   const [expanded, setExpanded] = useState(true);
   const [descriptionExpanded, setDescriptionExpanded] = useState(isDesktopViewport);
   useEffect(() => {
-    const media = window.matchMedia('(min-width: 701px)');
-    const syncDescription = () => { if (media.matches) setDescriptionExpanded(true); };
+    const media = window.matchMedia('(min-width: 701px) and (min-height: 501px)');
+    const syncDescription = () => setDescriptionExpanded(media.matches);
     syncDescription();
     media.addEventListener('change', syncDescription);
     return () => media.removeEventListener('change', syncDescription);

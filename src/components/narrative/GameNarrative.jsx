@@ -15,7 +15,7 @@ export default function GameNarrative(game) {
   const finalPhase = FINAL_PHASES[ventPhase];
   const examine = { STAGE_1_CAR6: game.examineCar6Point, STAGE_2_TUNNEL: game.examineTunnelPoint, STAGE_3_PLATFORM: game.examinePlatformPoint, STAGE_4_MALL: game.examineMallPoint }[stage];
   const owns = (...ids) => player.inventory.some((item) => ids.includes(item.id));
-  const action = (label, hint, onClick, enabled = true) => <button key={label} disabled={!enabled} onClick={onClick} className="p-3 bg-[#141926] border border-cyan-500/40 text-left disabled:opacity-40"><span className="text-xs font-bold">{label}</span><span className="block text-[10px] text-cyan-300 mt-1">{enabled ? hint : '필요 도구 미보유'}</span></button>;
+  const action = (label, hint, onClick, enabled = true) => <button key={label} disabled={!enabled} onClick={onClick} className="choice-card choice-card--route p-3 bg-[#141926] border border-cyan-500/40 text-left disabled:opacity-40"><span className="text-xs font-bold">{label}</span><span className="block text-[10px] text-cyan-300 mt-1">{enabled ? hint : '필요 도구 미보유'}</span></button>;
   return <main className="game-narrative bg-[#0a0c12] p-6 flex flex-col overflow-y-auto">
     <SceneOverview stage={stage} />
     <SurveyView stage={stage} handleSelectArchetype={game.handleSelectArchetype} />
