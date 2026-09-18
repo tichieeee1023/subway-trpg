@@ -27,7 +27,7 @@ export const EXPLORATION_STAGES = {
     point('t6_extinguisher', '⑥ 선로 점검함', '잠긴 점검함', '점검함에 묶인 휴대용 분말 소화기를 떼어냈다. 분말로 촉수를 견제하고 무거운 통으로 맨홀을 타격할 수 있다.', { check: ['STR', 10], rewards: [I.EXTINGUISHER], failHp: 2, failure: '고정 걸쇠가 튕겨 손등을 긁었다. HP -2.' }),
   ] },
   STAGE_3_PLATFORM: { title: '신도림 환승역 플랫폼', color: 'emerald', points: [
-    point('m1_map', '① 종합 노선도 역명판', '지워진 역명 하나', T.text_58, { check: ['INT', 11], rewards: [I.CLUE_MAP], anomaly: true, failure: T.text_61 }),
+    point('m1_map', '① 종합 노선도 역명판', '지워진 역명 하나', T.text_58, { check: ['INT', 11], rewards: [I.CLUE_MAP], anomaly: true, flags: { clueFakeStation: true }, failure: T.text_61 }),
     point('m2_vending', '② 승강장 캔 음료 자판기', '멈춘 자판기', '덜컹거리는 투입구에서 에너지 드링크를 꺼냈다. 차가운 캔이 손바닥에 닿는다.', { rewards: [I.ENERGY] }),
     point('m3_mirror', '③ 안전 전신 볼록 거울', '한 박자 늦은 그림자', T.text_67.replace('SAN -3', 'SAN -2'), { anomaly: true, sanCost: 2 }),
     point('m4_office', '④ 역무원 고객안내센터', '창구 아래 벗겨진 살결', T.text_70, { rewards: [I.CLUE_SKIN, I.KEY_BRASS], anomaly: true }),

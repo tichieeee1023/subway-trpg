@@ -22,7 +22,7 @@ export default function GameNarrative(game) {
         </div>
       </div>
       <div className={`exploration-rule${ap === 0 ? ' is-empty' : ''}`}><strong>{ap === 0 ? '조사 완료' : '조사 규칙'}</strong><span>{ap === 0 ? '이번 구역에서 사용할 수 있는 3번의 조사를 모두 썼습니다.' : `6곳 중 최대 3곳만 조사할 수 있습니다 · 남은 조사 ${ap}회`}</span></div>
-      {stage === 'STAGE_3_PLATFORM' && ap === 0 ? <p>탐사를 마쳤습니다. 위화감 {flags.anomalyCount}개 발견. 이동 경로를 선택하세요.</p> : <div className="grid grid-cols-2 gap-2.5"><ActionPanel points={exploration.points} examinedPoints={examinedPoints} ap={ap} onExamine={examine} color={exploration.color} /></div>}
+      {stage === 'STAGE_3_PLATFORM' && ap === 0 ? <p>탐사를 마쳤습니다. 이동 경로를 선택하세요.</p> : <div className="grid grid-cols-2 gap-2.5"><ActionPanel points={exploration.points} examinedPoints={examinedPoints} ap={ap} onExamine={examine} color={exploration.color} /></div>}
       {stage === 'STAGE_3_PLATFORM' && ap === 0 && <div className="grid grid-cols-2 gap-2">{action('[경로 A] 3번 출구', '지상으로 이동', () => game.choosePlatformExit('EXIT_3'))}{action('[경로 B] 직원 통로', '설비구역으로 이동', () => game.choosePlatformExit('BREAKER'))}</div>}
     </section>}
     {stage === 'STAGE_5_VENT' && <section className="space-y-3"><div className="flex justify-between gap-2"><strong>최종전 · {ventPhase}/3단계</strong><span className="text-rose-400">남은 시간 {turnLimit}턴</span></div>

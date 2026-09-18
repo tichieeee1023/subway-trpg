@@ -63,7 +63,7 @@ export function createExplorationHandlers(context, stage) {
   const choosePlatformExit = (choice) => {
     const state = getState();
     if (stage !== 'STAGE_3_PLATFORM' || state.stage !== stage || state.ap > 0 || !canAct(state) || !['EXIT_3', 'BREAKER'].includes(choice)) return;
-    if (choice === 'EXIT_3' && state.flags.anomalyCount === 0) {
+    if (choice === 'EXIT_3' && !state.flags.clueFakeStation) {
       setActiveModalText({ title: '가짜 3번 출구', body: '계단이 일렁이며 붉은 식도로 변했다. 역 전체가 입을 벌리고 있다.', image: SCENE_ASSETS.TRAP_EXIT, onClose: () => finishGame(context, 'BAD_2') });
     } else if (choice === 'EXIT_3') {
       setActiveModalText({ title: SCENARIO_TEXT.text_77, body: SCENARIO_TEXT.text_78, onClose: () => enter('STAGE_4_MALL') });

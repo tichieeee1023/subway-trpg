@@ -113,6 +113,21 @@ test('platform route requires three investigations and fake exit without anomali
   game.drain(); assert.equal(game.state.endingData.id, 'BAD_2');
 });
 
+test('only the route-map clue permits the third exit after other anomalies', () => {
+  const withoutMap = harness('STAGE_3_PLATFORM');
+  for (const id of ['m2_vending', 'm3_mirror', 'm4_office']) { withoutMap.handlers().examinePlatformPoint(id); withoutMap.drain(); }
+  assert.equal(withoutMap.state.flags.anomalyCount, 2);
+  assert.equal(withoutMap.state.flags.clueFakeStation, false);
+  withoutMap.handlers().choosePlatformExit('EXIT_3'); withoutMap.drain();
+  assert.equal(withoutMap.state.endingData.id, 'BAD_2');
+
+  const withMap = harness('STAGE_3_PLATFORM');
+  for (const id of ['m1_map', 'm2_vending', 'm5_acid']) { withMap.handlers().examinePlatformPoint(id); withMap.drain(); }
+  assert.equal(withMap.state.flags.clueFakeStation, true);
+  withMap.handlers().choosePlatformExit('EXIT_3'); withMap.drain();
+  assert.equal(withMap.state.stage, 'STAGE_4_MALL');
+});
+
 test('real success route traverses Stage 0 to six-choice stages and all three final phases', () => {
   const game = harness(); game.handlers().handleSelectArchetype(ARCHETYPES[0], 'F'); game.handlers().handleRollCondition(); game.drain();
   for (const [method, ids] of [
