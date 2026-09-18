@@ -10,7 +10,7 @@ import { ARCHETYPES } from '../src/data/surveyDB.js';
 import { FATIGUE_ROLL_TABLE } from '../src/data/conditionDB.js';
 import { executeD20Check, getSuccessProbability } from '../src/utils/diceEngine.js';
 import { PUBLIC_ASSET_FILES } from '../src/data/assetDB.js';
-import { ITEM_DATABASE as I } from '../src/data/itemDB.js';
+import { ITEM_DATABASE as I, ITEM_DB } from '../src/data/itemDB.js';
 import { EXPLORATION_STAGES } from '../src/data/explorationDB.js';
 import { getEscapeEnding } from '../src/data/endingDB.js';
 import { advanceStoryModal } from '../src/utils/storyFlow.js';
@@ -77,6 +77,8 @@ test('all linked portraits/scenes/six cards and 29 item entries resolve to exist
   for (const item of Object.values(I)) {
     assert.match(item.img, /\.webp$/); assert.ok(existsSync(fileURLToPath(new URL(`../public${item.img}`, import.meta.url))), item.img);
   }
+  assert.match(ITEM_DB.lucky_coin.img, /item_gear_coin\.webp$/);
+  assert.ok(existsSync(fileURLToPath(new URL(`../public${ITEM_DB.lucky_coin.img}`, import.meta.url))), ITEM_DB.lucky_coin.img);
 });
 
 test('each exploration has six unique choices; repeated, invalid and modal-blocked actions consume no AP', () => {

@@ -54,7 +54,7 @@ export const ITEM_DB = {
   protein_bar: { id: 'protein_bar', name: '단백질 바', desc: '사용 시 HP +5', icon: '🍫', consumable: true, hpRestore: 5 },
   running_shoes: { id: 'running_shoes', name: '쿠션 러닝화', desc: '민첩 기동 보조', icon: '👟' },
   metal_pen: { id: 'metal_pen', name: '고급 금속 만년필', desc: '날카로운 비상 찌르개', icon: '🖊️' },
-  lucky_coin: { id: 'lucky_coin', name: '행운의 100원 동전', desc: '도구 틈새 쐐기', icon: '🪙' },
+  lucky_coin: item('lucky_coin', '행운의 100원 동전', 'item_gear_coin', '도구 틈새 쐐기'),
 };
 
 export const ITEM_ASSET_FILES = Object.fromEntries(
