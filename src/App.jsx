@@ -31,6 +31,7 @@ export default function App() {
   const { settings, updateSettings } = useGameSettings();
   const { collected, unlockAllEndings } = useEndingCollection(game.endingData);
   const collectionUnlocked = collected.length > 0;
+  const collectionComplete = collected.length === 6;
   const openCollection = () => { if (collectionUnlocked) setUtility('collection'); };
   useEffect(() => {
     if (!import.meta.env.DEV || showOpening || (!showIntro && game.stage !== 'SURVEY') || utility) return;
@@ -58,10 +59,10 @@ export default function App() {
   const restart = () => { game.handleRestart(); setShowOpening(false); setShowIntro(true); };
   return (
     <MainLayout isGlitching={game.isGlitching && !settings.disableEffects}>
-      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
+      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
       <GameHeader {...game} soundEnabled={soundEnabled} toggleSound={toggleSound} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onHint={() => setUtility('hint')} />
       {game.stage === 'ENDING' ? (
-        <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} disableEffects={settings.disableEffects} />
+        <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} />
       ) : <div className="game-columns flex-1 flex overflow-hidden">
         <CharacterSheet player={game.player} handleUseItem={game.handleUseItem} canUseItems={game.stage.startsWith('STAGE_') && !game.activeModalText && !game.diceModal.isOpen} />
         <GameNarrative {...game} />

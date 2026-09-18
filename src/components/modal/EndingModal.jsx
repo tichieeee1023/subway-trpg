@@ -4,7 +4,7 @@ import { ENDING_CARDS } from '../../data/assetDB.js';
 import { useTypewriter } from '../../hooks/useTypewriter.js';
 import TypedText from '../narrative/TypedText.jsx';
 
-export default function EndingModal({ stage, endingData, handleRestart, onCollection, collectedCount, disableEffects }) {
+export default function EndingModal({ stage, endingData, handleRestart, onCollection, collectedCount, disableEffects, collectionComplete }) {
   const text = endingData?.desc ?? '';
   const [revealed, setRevealed] = useState(() => disableEffects === true);
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function EndingModal({ stage, endingData, handleRestart, onCollec
             <p><TypedText text={text} count={count} /></p>
           </div>
           <div className="ending-actions">
-            <button onClick={onCollection} className="bg-cyan-950 text-cyan-200">엔딩 도감 · {collectedCount}/6</button>
+            <button onClick={onCollection} className={collectionComplete ? 'collection-button-complete' : 'bg-cyan-950 text-cyan-200'}>{collectionComplete ? '✦ 엔딩 도감 · 6/6' : `엔딩 도감 · ${collectedCount}/6`}</button>
             {!done && <button onClick={finish} className="bg-neutral-900 text-neutral-100 cursor-pointer">텍스트 바로 보기</button>}
             <button onClick={handleRestart} className="bg-neutral-800 text-neutral-100 font-bold cursor-pointer">
               <RotateCcw size={18} /><span>처음부터 다시 시도</span>
