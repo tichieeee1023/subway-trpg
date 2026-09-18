@@ -11,7 +11,7 @@ const STAGE_HINTS = {
   STAGE_5_VENT: '세 번의 숨이 끝나기 전, 길을 막는 것들을 차례로 지나가야 합니다.',
 };
 
-export default function UtilityModal({ kind, stage, settings, updateSettings, onClose }) {
+export default function UtilityModal({ kind, stage, settings, updateSettings, onCredits, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     const previousFocus = document.activeElement;
@@ -53,6 +53,7 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <h3>5. 이야기를 읽고 다음으로 진행하세요</h3><p>텍스트 출력 중에는 &gt;다음이나 모달 바깥을 누르면 문장이 완성됩니다. 한 번 더 누르면 다음 행동으로 진행합니다. Esc도 사용할 수 있습니다.</p>
             <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
           </div>}
+          {kind === 'help' && <button className="utility-credits" onClick={onCredits}>CREDITS</button>}
           <button className="utility-done" onClick={onClose}>확인</button>
         </section>
       </div>

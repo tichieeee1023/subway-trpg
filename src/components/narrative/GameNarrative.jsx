@@ -19,7 +19,19 @@ export default function GameNarrative(game) {
   return <main className="game-narrative bg-[#0a0c12] p-6 flex flex-col overflow-y-auto">
     <SceneOverview stage={stage} />
     <SurveyView stage={stage} handleSelectArchetype={game.handleSelectArchetype} />
-    {stage === 'DICE_CONDITION' && <div className="condition-panel my-auto text-center space-y-6 mx-auto"><h3>오늘 하루의 잔업 강도와 피로도를 결정합니다</h3><p>컨디션에 따라 시작 HP / SAN과 특성이 달라집니다.</p><button className="p-4 bg-amber-300 text-neutral-950" onClick={game.handleRollCondition}>D20 주사위 굴려 피로도 확정</button><p>1은 연속 철야, 20은 공포 면역. SAN 최대치는 15입니다.</p></div>}
+    {stage === 'DICE_CONDITION' && <section className="condition-panel my-auto mx-auto" aria-labelledby="condition-title">
+      <div className="condition-panel__signal"><span>SHIFT STATUS // 00:00</span><i aria-hidden="true" /></div>
+      <div className="condition-panel__body">
+        <span className="condition-panel__eyebrow">NIGHT SHIFT READINESS CHECK</span>
+        <h3 id="condition-title">오늘, 얼마나 버틸 수 있을까?</h3>
+        <p>잔업의 강도와 피로도를 확인합니다. 결과에 따라 시작 HP · SAN과 특성이 결정됩니다.</p>
+        <div className="condition-panel__range" aria-label="주사위 결과 범위">
+          <span><b>01</b> 연속 철야</span><span><b>08–14</b> 표준 컨디션</span><span><b>20</b> 공포 면역</span>
+        </div>
+        <button className="condition-panel__roll" onClick={game.handleRollCondition}><span>ROLL D20</span><small>피로도 확인</small></button>
+      </div>
+      <p className="condition-panel__footnote">SAN 최대치는 15입니다. 주사위는 출발 전, 당신의 오늘을 기록합니다.</p>
+    </section>}
     {exploration && <section className="exploration-section space-y-3">
       <div className="exploration-hud">
         <div className="location-readout"><span>현재 위치</span><strong>{exploration.title}</strong></div>

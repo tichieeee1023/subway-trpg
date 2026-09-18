@@ -18,6 +18,9 @@ export const SECRET_STORY = {
 export function getEscapeEnding(player) {
   if (player.hp <= 0 || player.san <= 0) return 'BAD_3';
   if (player.hp >= 12 && player.san >= 8) return 'TRUE';
-  if (player.hp >= 8 && player.san >= 5) return 'GOOD';
+  // NORMAL is the scarred-survivor ending.  The old 8 / 5 gate only left it
+  // to players who were one hit from collapse, making this ending much harder
+  // to encounter than either positive ending.
+  if (player.hp >= 10 && player.san >= 7) return 'GOOD';
   return 'NORMAL';
 }
