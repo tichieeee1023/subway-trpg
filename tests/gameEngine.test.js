@@ -100,6 +100,13 @@ test('last AP wrench reward appears and permits escape; no wrench ends at BAD 1'
     for (const id of ['p3_valve', 'p6_floor']) { game.handlers().examineCar6Point(id); game.drain(); }
     game.handlers().examineCar6Point(ownsWrench ? 'p4_shelf' : 'p1_padding');
     if (ownsWrench) assert.equal(game.state.activeModalText.rewardItems[0].id, 'wrench');
+    if (ownsWrench) {
+      game.close();
+      assert.equal(game.state.activeModalText.title, '7호차 격벽 붕괴');
+      game.close();
+      assert.equal(game.state.activeModalText.illustration.id, 'wrench');
+      assert.match(game.state.activeModalText.title, /장비 재사용/);
+    }
     game.drain();
     assert.equal(game.state.stage, ownsWrench ? 'STAGE_2_TUNNEL' : 'ENDING');
     if (!ownsWrench) assert.equal(game.state.endingData.id, 'BAD_1');
@@ -140,11 +147,14 @@ test('real success route traverses Stage 0 to six-choice stages and all three fi
   game.handlers().choosePlatformExit('BREAKER');
   for (const id of ['c1_store', 'c3_cctv', 'c5_pharmacy']) { game.handlers().examineMallPoint(id); game.drain(); }
   assert.equal(game.state.stage, 'STAGE_5_VENT');
-  game.handlers().handleStage5Action('TOOL_WRENCH'); game.drain();
+  game.handlers().handleStage5Action('TOOL_WRENCH');
+  assert.equal(game.state.activeModalText.illustration.id, 'wrench');
+  game.drain();
   assert.equal(game.state.ventPhase, 2); assert.equal(game.state.turnLimit, 2);
   game.handlers().handleVentDefense('LANTERN'); game.drain();
   assert.equal(game.state.ventPhase, 3); assert.equal(game.state.turnLimit, 2);
   game.handlers().handleVentEscape('COMBO');
+  game.drain();
   assert.equal(game.state.endingData.id, 'TRUE');
 });
 
@@ -161,10 +171,14 @@ test('missing tools and wrong final phases do not alter turns or grant success',
 test('both zero-turn defenses preserve last turn; last-turn escape succeeds', () => {
   for (const [item, approach] of [[I.LANTERN, 'LANTERN'], [I.EXTINGUISHER, 'EXTINGUISHER']]) {
     const game = harness('STAGE_5_VENT'); game.update('ventPhase', 2); game.update('turnLimit', 1); game.items(item, I.WRENCH, I.CROWBAR);
-    game.handlers().handleVentDefense(approach); game.drain();
+    game.handlers().handleVentDefense(approach);
+    assert.equal(game.state.activeModalText.illustration.id, item.id);
+    assert.equal(game.state.ventPhase, 2);
+    game.drain();
     assert.equal(game.state.turnLimit, 1); assert.equal(game.state.ventPhase, 3);
     game.handlers().handleVentDefense(approach); assert.equal(game.state.turnLimit, 1);
-    game.handlers().handleVentEscape('COMBO'); assert.equal(game.state.turnLimit, 0); assert.equal(game.state.endingData.id, 'TRUE');
+    game.handlers().handleVentEscape('COMBO'); game.drain();
+    assert.equal(game.state.turnLimit, 0); assert.equal(game.state.endingData.id, 'TRUE');
   }
 });
 
@@ -190,24 +204,105 @@ test('HP or SAN collapse ends the game; fear immunity actually prevents SAN loss
 });
 
 test('gloves prevent acid contact and reduce electrical injury; CCTV lowers real fan DC', () => {
-  for (const gloves of [true, false]) {
-    const game = harness('STAGE_3_PLATFORM'); game.items(...(gloves ? [I.RUBBER_GLOVES] : []));
-    game.handlers().examinePlatformPoint('m5_acid'); assert.equal(game.state.player.hp, gloves ? 20 : 18);
-    assert.ok(game.state.player.inventory.some((item) => item.id === 'acid_vial'));
-    game.drain(); game.update('stage', 'STAGE_2_TUNNEL'); game.update('examinedPoints', []); game.outcome(false);
-    const before = game.state.player.hp;
-    game.handlers().examineTunnelPoint('t4_rail'); assert.equal(game.state.player.hp, before - (gloves ? 2 : 6));
-  }
+  const acid = harness('STAGE_3_PLATFORM'); acid.items(I.RUBBER_GLOVES);
+  acid.handlers().examinePlatformPoint('m5_acid');
+  assert.equal(acid.state.player.hp, 20);
+  assert.ok(acid.state.activeModalText.rewardItems.some((item) => item.id === 'acid_vial'));
+  acid.close();
+  assert.equal(acid.state.activeModalText.title, '산성액 접촉 위험');
+  acid.close();
+  assert.equal(acid.state.activeModalText.illustration.id, 'rubber_gloves');
+  assert.deepEqual(acid.state.activeModalText.modifiers[0], { label: '산성액 접촉 피해', from: 'HP -2', to: 'HP 0', tone: 'damage' });
+  assert.equal(acid.state.player.hp, 20);
+  acid.drain();
+
+  const unprotectedAcid = harness('STAGE_3_PLATFORM');
+  unprotectedAcid.handlers().examinePlatformPoint('m5_acid');
+  assert.equal(unprotectedAcid.state.player.hp, 18);
+  unprotectedAcid.drain();
+
+  const rail = harness('STAGE_2_TUNNEL'); rail.items(I.RUBBER_GLOVES); rail.outcome(false);
+  const before = rail.state.player.hp;
+  rail.handlers().examineTunnelPoint('t4_rail');
+  assert.equal(rail.state.player.hp, before);
+  assert.match(rail.state.activeModalText.body, /전류가 팔을 타고 올라왔다/);
+  rail.close();
+  assert.equal(rail.state.activeModalText.illustration.id, 'rubber_gloves');
+  assert.deepEqual(rail.state.activeModalText.modifiers[0], { label: '감전 피해', from: 'HP -6', to: 'HP -2', tone: 'damage' });
+  assert.equal(rail.state.player.hp, before);
+  rail.close();
+  assert.equal(rail.state.player.hp, before - 2);
+
   const game = harness('STAGE_5_VENT');
   game.update('flags', (flags) => ({ ...flags, knows_fan_circuit: true }));
-  game.handlers().handleStage5Action('INT'); assert.equal(game.checks[0].dc, 9);
+  game.handlers().handleStage5Action('INT');
+  assert.equal(game.checks.length, 0);
+  assert.equal(game.state.activeModalText.title, '사전 조사 정보');
+  assert.deepEqual(game.state.activeModalText.modifiers[0], { label: 'INT 판정 난이도', from: 'DC 12', to: 'DC 9', tone: 'benefit' });
+  game.close();
+  assert.equal(game.checks[0].dc, 9);
 });
 
 test('acid fan method consumes only acid and glove protection applies', () => {
   const game = harness('STAGE_5_VENT'); game.items(I.ACID_VIAL, I.RUBBER_GLOVES);
-  game.handlers().handleStage5Action('TOOL_WRENCH'); game.drain();
+  game.handlers().handleStage5Action('TOOL_ACID_VIAL');
+  assert.equal(game.state.activeModalText.illustration.id, 'acid_vial');
+  assert.ok(game.state.player.inventory.some((item) => item.id === 'acid_vial'));
+  game.close();
+  assert.equal(game.state.activeModalText.title, '산성액 접촉 위험');
+  game.close();
+  assert.equal(game.state.activeModalText.illustration.id, 'rubber_gloves');
+  assert.ok(game.state.player.inventory.some((item) => item.id === 'acid_vial'));
+  game.close();
+  assert.equal(game.state.activeModalText.title, '도구 정공법 — 배기팬 정지');
+  game.drain();
   assert.equal(game.state.player.hp, 20); assert.equal(game.state.ventPhase, 2);
   assert.deepEqual(game.state.player.inventory.map((item) => item.id), ['rubber_gloves']);
+});
+
+test('multitool can be selected independently of the mandatory wrench', () => {
+  const game = harness('STAGE_5_VENT'); game.items(I.WRENCH, I.MULTITOOL);
+  game.handlers().handleStage5Action('TOOL_MULTITOOL');
+  assert.equal(game.state.activeModalText.illustration.id, 'multitool');
+  assert.equal(game.state.ventPhase, 1);
+  game.close();
+  assert.equal(game.state.ventPhase, 2);
+  assert.equal(game.state.turnLimit, 2);
+  assert.deepEqual(game.state.player.inventory.map((item) => item.id), ['wrench', 'multitool']);
+});
+
+test('fan failure queues the glove effect before injury and crowbar displays its real DC reduction', () => {
+  const failed = harness('STAGE_5_VENT'); failed.items(I.RUBBER_GLOVES); failed.outcome(false);
+  const before = failed.state.player.hp;
+  failed.handlers().handleStage5Action('INT');
+  assert.equal(failed.state.activeModalText.illustration, undefined);
+  assert.equal(failed.state.player.hp, before);
+  failed.close();
+  assert.equal(failed.state.activeModalText.illustration.id, 'rubber_gloves');
+  assert.equal(failed.state.player.hp, before);
+  failed.close();
+  assert.equal(failed.state.player.hp, before - 2);
+
+  const crowbar = harness('STAGE_5_VENT'); crowbar.update('ventPhase', 3); crowbar.items(I.CROWBAR);
+  crowbar.handlers().handleVentEscape('STR');
+  assert.equal(crowbar.state.activeModalText.illustration.id, 'crowbar');
+  assert.deepEqual(crowbar.state.activeModalText.modifiers[0], { label: 'STR 판정 난이도', from: 'DC 14', to: 'DC 9', tone: 'benefit' });
+  assert.equal(crowbar.checks.length, 0);
+  crowbar.close();
+  assert.equal(crowbar.checks[0].dc, 9);
+  assert.equal(crowbar.state.endingData.id, 'TRUE');
+});
+
+test('extinguisher can be selected for the later crowbar combo and stays in inventory', () => {
+  const game = harness('STAGE_5_VENT'); game.update('ventPhase', 3); game.items(I.CROWBAR, I.EXTINGUISHER);
+  game.handlers().handleVentEscape('COMBO', 'extinguisher');
+  assert.deepEqual(game.state.activeModalText.illustrations.map((item) => item.id), ['crowbar', 'extinguisher']);
+  assert.equal(game.state.endingData, null);
+  assert.equal(game.state.turnLimit, 3);
+  game.close();
+  assert.equal(game.state.turnLimit, 2);
+  assert.equal(game.state.endingData.id, 'TRUE');
+  assert.deepEqual(game.state.player.inventory.map((item) => item.id), ['crowbar', 'extinguisher']);
 });
 
 test('inventory rewards never silently disappear and consumables require ownership and clamp recovery', () => {

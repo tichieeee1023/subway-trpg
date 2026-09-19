@@ -188,16 +188,22 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 [role="dialog"] p { font-size: 18px; line-height: 1.85; }
 [role="dialog"] button { min-height: 52px; font-size: 18px; }
 [role="dialog"] figure { border-style: dashed; }
-.story-dialog { display: flex; flex-direction: column; gap: 18px; max-width: 700px; padding: clamp(22px, 4vw, 34px); overflow-x: hidden; border-color: #869ca1; background: radial-gradient(circle at 100% 0, #28424a55, transparent 32%), #0e171c; }
+.story-dialog { display: flex; flex-direction: column; gap: 18px; max-width: 700px; max-height: calc(100svh - 32px); padding: clamp(22px, 4vw, 34px); overflow-x: hidden; border-color: #869ca1; background: radial-gradient(circle at 100% 0, #28424a55, transparent 32%), #0e171c; }
 .story-dialog__scene { display: block; width: 100%; max-height: 215px; margin: 0; object-fit: cover; filter: saturate(.7) contrast(1.08); }
 .story-dialog__heading { padding-bottom: 14px; border-bottom: 1px solid #43565c; }
 .story-dialog__kicker { display: block; margin-bottom: 6px; color: #caaa68; font: 12px var(--story-font); letter-spacing: .14em; }
 .story-dialog__title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .story-dialog h3 { min-width: 0; margin: 0; color: #f0f1e9; font-size: clamp(22px, 4vw, 29px); line-height: 1.35; word-break: keep-all; overflow-wrap: break-word; }
 .story-dialog__tag { flex: 0 1 210px; padding: 5px 8px; border-left: 2px solid #bb9860; background: #20272a; color: #c7d0cc; font-size: 13px; line-height: 1.35; }
-.story-illustration { margin: 0; padding: 10px; border: 1px solid #4d5a58; background: #090e11; }
+.story-illustrations { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.story-illustrations--paired { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.story-illustration { min-width: 0; margin: 0; padding: 10px; border: 1px solid #4d5a58; background: #090e11; }
 .story-illustration img { display: block; width: 100%; height: 146px; object-fit: contain; }
-.story-illustration figcaption { margin-top: 7px; color: #b5c0b9; text-align: center; font: 13px var(--story-font); }
+.story-illustration figcaption { margin-top: 7px; color: #b5c0b9; text-align: center; font: 13px var(--story-font); overflow-wrap: anywhere; }
+.story-modifiers { display: grid; gap: 8px; padding: 12px; border: 1px solid #465b5e; background: #0a1114; }
+.story-modifiers p { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; color: #c6d0cb; font: 15px/1.5 var(--story-font); }
+.story-modifiers strong { text-align: right; white-space: nowrap; }
+.story-modifiers i { font-style: normal; }
 .story-rewards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .story-rewards--single { grid-template-columns: 1fr; }
 .story-reward-card { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: center; min-height: 120px; margin: 0; padding: 8px 12px; border: 1px solid #8d7040 !important; background: linear-gradient(100deg, #17140d, #101719); }
@@ -327,6 +333,9 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
   .story-dialog__title-row { flex-direction: column; gap: 8px; }
   .story-dialog__title-row h3 { width: 100%; }
   .story-dialog__tag { flex: 0 1 auto; max-width: 180px; font-size: 12px; }
+  .story-illustrations--paired .story-illustration { padding: 8px; }
+  .story-illustrations--paired .story-illustration img { height: 112px; }
+  .story-illustrations--paired .story-illustration figcaption { font-size: 11px; }
   /* Keep both rewards visible, but stack each card's icon and label so the
      label has the full card width on narrow screens. */
   .story-reward-card { display: block; min-height: 0; padding: 8px; text-align: center; }
@@ -404,6 +413,7 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 .typed-reserve { visibility: hidden; }
 .typed-visible { position: absolute; inset: 0; }
 .typed-damage { color: #ff7078; font-weight: 700; text-shadow: 0 0 10px #e54b5566; }
+.typed-benefit { color: #79ddaa; font-weight: 700; text-shadow: 0 0 10px #3fcf8b55; }
 .typing-cursor { color: #e6b966; animation: cursor-blink 700ms steps(2) infinite; }
 @keyframes cursor-blink { to { opacity: 0; } }
 .ending-credits { margin-top: 28px; padding-top: 16px; border-top: 1px solid #65767b66; font-size: 14px; color: #a6b4bb; }

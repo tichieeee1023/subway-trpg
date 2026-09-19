@@ -1,5 +1,6 @@
 import { EXPLORATION_STAGES } from '../../data/explorationDB.js';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
+import { ITEM_DATABASE as I } from '../../data/itemDB.js';
 import { SCENARIO_TEXT } from '../../data/scenarioDB.js';
 import { applyDamage, canAct, checkCollapse, finishGame, grantItems, hasItem } from '../gameRules.js';
 
@@ -11,9 +12,13 @@ export function createExplorationHandlers(context, stage) {
     if (nextStage === 'STAGE_5_VENT') { setTurnLimit(3); setVentPhase(1); }
     addLog(`다음 구역 진입: ${nextStage === 'STAGE_5_VENT' ? '수직 환기탑 · 3단계 결전' : EXPLORATION_STAGES[nextStage].title}`);
   };
-  const afterExplore = () => {
-    if (checkCollapse(context)) return;
-    const state = getState();
+  const showEquipment = (item, kind, body, onClose, extra = {}) => setActiveModalText({
+    title: kind + ' · ' + item.name, tag: kind, illustration: item, body, onClose, ...extra,
+  });
+  const afterExplore = (stateOverride = null) => {
+    const state = stateOverride ?? getState();
+    const checkContext = stateOverride ? { ...context, getState: () => state } : context;
+    if (checkCollapse(checkContext)) return;
     if (state.ap > 0) return;
     if (stage === 'STAGE_1_CAR6') {
       context.triggerGlitch(500);
@@ -21,7 +26,8 @@ export function createExplorationHandlers(context, stage) {
       setActiveModalText({ title: '7호차 격벽 붕괴', body: '승객의 허물을 뒤집어쓴 거대한 지네가 문틈을 뚫고 들어온다. 지금 탈출해야 한다.', image: SCENE_ASSETS.MIMIC,
         onClose: () => {
           if (!hasItem(getState(), 'wrench')) { finishGame(context, 'BAD_1'); return; }
-          setActiveModalText({ title: SCENARIO_TEXT.text_27, body: SCENARIO_TEXT.text_28, onClose: () => enter('STAGE_2_TUNNEL') });
+          showEquipment(I.WRENCH, '장비 재사용', '쇼핑백에서 꺼낸 비상 스패너를 다시 쥐었다. 묵직한 금속의 무게가 손에 익었다.',
+            () => setActiveModalText({ title: SCENARIO_TEXT.text_27, body: SCENARIO_TEXT.text_28, onClose: () => enter('STAGE_2_TUNNEL') }));
         } });
     } else if (stage === 'STAGE_2_TUNNEL') {
       setActiveModalText({ title: SCENARIO_TEXT.text_54, body: SCENARIO_TEXT.text_55, onClose: () => enter('STAGE_3_PLATFORM') });
@@ -38,9 +44,27 @@ export function createExplorationHandlers(context, stage) {
     const resolve = (success) => {
       const latest = getState();
       const gloves = hasItem(latest, 'rubber_gloves');
+      const protectedShock = !success && point.electrical && gloves;
+      const protectedAcid = success && point.acidContact && gloves;
       const hpCost = success ? (point.acidContact && !gloves ? 2 : 0) : (point.electrical && gloves ? 2 : point.failHp ?? 0);
       const sanCost = success ? point.sanCost ?? 0 : point.failSan ?? 0;
       if (success && point.rewards?.length) sfx.playAction();
+      if (protectedShock) {
+        addLog(point.title + ': 판정 실패 · 절연 고무장갑으로 감전 피해 감소');
+        setActiveModalText({ title: point.title, body: '젖은 타일에 발을 헛디뎌 고압선에 스쳤다. 푸른 전류가 팔을 타고 올라왔다.', image: point.image,
+          onClose: () => {
+            showEquipment(I.RUBBER_GLOVES, '장비 효과', '강한 전류가 팔을 타고 올라왔다. 두꺼운 고무층이 충격을 줄여 손끝의 마비가 빠르게 약해졌다.',
+              () => {
+                const current = getState();
+                const injuredPlayer = applyDamage(current.player, hpCost, sanCost);
+                setPlayer((player) => applyDamage(player, hpCost, sanCost));
+                afterExplore({ ...current, player: injuredPlayer });
+              }, {
+                modifiers: [{ label: '감전 피해', from: 'HP -6', to: 'HP -' + hpCost, tone: 'damage' }],
+              });
+          } });
+        return;
+      }
       setPlayer((player) => {
         const updated = applyDamage(player, hpCost, sanCost);
         const granted = success ? grantItems(updated, point.rewards ?? []) : updated;
@@ -54,11 +78,15 @@ export function createExplorationHandlers(context, stage) {
         has_master_card: flags.has_master_card || point.rewards?.some((item) => item.id === 'key_card') || false,
       }));
       let body = success ? point.body : point.failure ?? '수색에 실패했다. 시간을 소모했지만 도구를 확보하지 못했다.';
-      if (success && hpCost) body += `\n보호 장갑 없이 채취하다 산성액에 닿았다. HP -${hpCost}.`;
-      if (!success && point.electrical && gloves) body = '누전이 튀었지만 절연장갑이 충격을 줄여 주었다. HP -2.';
+      if (success && hpCost) body += '\n보호 장갑 없이 채취하다 산성액에 닿았다. HP -' + hpCost + '.';
       if (sanCost && latest.player.trait.includes('잃을 게 없음')) body += '\n공포 저항으로 SAN 감소가 면제되었다.';
-      addLog(`${point.title}: ${success ? '조사 완료' : '판정 실패'} · AP ${state.ap - 1}/3`);
-      setActiveModalText({ title: point.title, body, image: point.image, tag: success && point.rewards?.length ? '도구 획득' : point.tag, onClose: afterExplore });
+      addLog(point.title + ': ' + (success ? '조사 완료' : '판정 실패') + ' · AP ' + (state.ap - 1) + '/3');
+      const onClose = protectedAcid ? () => {
+        setActiveModalText({ title: '산성액 접촉 위험', body: '채취병에 점액을 옮기는 순간, 유리 틈에서 산성액 한 방울이 튀었다.',
+          onClose: () => showEquipment(I.RUBBER_GLOVES, '장비 효과', '산성액이 장갑 손등에 닿았다. 두꺼운 고무층이 맨살에 닿기 전에 액체를 막아 냈다.',
+            afterExplore, { modifiers: [{ label: '산성액 접촉 피해', from: 'HP -2', to: 'HP 0', tone: 'damage' }] }) });
+      } : afterExplore;
+      setActiveModalText({ title: point.title, body, image: point.image, tag: success && point.rewards?.length ? '도구 획득' : point.tag, onClose });
     };
     if (point.check && !(point.cardBypass && hasItem(state, 'key_card'))) openDiceCheck(point.title, ...point.check, () => resolve(true), () => resolve(false));
     else resolve(true);

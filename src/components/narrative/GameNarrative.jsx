@@ -16,6 +16,16 @@ export default function GameNarrative(game) {
   const examine = { STAGE_1_CAR6: game.examineCar6Point, STAGE_2_TUNNEL: game.examineTunnelPoint, STAGE_3_PLATFORM: game.examinePlatformPoint, STAGE_4_MALL: game.examineMallPoint }[stage];
   const owns = (...ids) => player.inventory.some((item) => ids.includes(item.id));
   const action = (label, hint, onClick, enabled = true) => <button key={label} disabled={!enabled} onClick={onClick} className="choice-card choice-card--route p-3 bg-[#141926] border border-cyan-500/40 text-left disabled:opacity-40"><span className="text-xs font-bold">{label}</span><span className="block text-[10px] text-cyan-300 mt-1">{enabled ? hint : '필요 도구 미보유'}</span></button>;
+  const fanTools = [
+    { id: 'wrench', action: 'TOOL_WRENCH', label: '비상 스패너', kind: '장비 재사용', hint: '확정 · 1턴' },
+    { id: 'multitool', action: 'TOOL_MULTITOOL', label: '접이식 멀티툴', kind: '장비 사용', hint: '확정 · 1턴' },
+    { id: 'acid_vial', action: 'TOOL_ACID_VIAL', label: '산성 점액 채취병', kind: '장비 사용', hint: owns('rubber_gloves') ? '확정 · 1턴 · 산성액 소모' : '확정 · HP -2 · 1턴 · 산성액 소모' },
+  ].filter((tool) => owns(tool.id));
+  const comboTools = [
+    { id: 'wrench', label: '비상 스패너' },
+    { id: 'tumbler', label: '보냉 텀블러' },
+    { id: 'extinguisher', label: '빈 소화기' },
+  ].filter((tool) => owns(tool.id));
   return <main className="game-narrative bg-[#0a0c12] p-6 flex flex-col overflow-y-auto">
     <SceneOverview key={stage} stage={stage} />
     <SurveyView stage={stage} handleSelectArchetype={game.handleSelectArchetype} />
@@ -48,9 +58,9 @@ export default function GameNarrative(game) {
       <div className="final-hud"><div><span>FINAL ESCAPE PROTOCOL</span><strong>환기탑 갱도 · 탈출 시도</strong></div><div className="final-turns" role="status" aria-live="polite"><span>남은 시간</span><strong>{turnLimit}<small>턴</small></strong></div></div>
       <div className="final-briefing"><div className="final-phase-track" aria-label={`최종전 ${ventPhase} / 3단계`}>{[1, 2, 3].map((phase) => <i key={phase} className={phase === ventPhase ? 'is-current' : phase < ventPhase ? 'is-cleared' : ''}>{phase}</i>)}</div><span>PHASE {String(ventPhase).padStart(2, '0')} / 03 · {finalPhase.code}</span><h3>{finalPhase.title}</h3><p>{finalPhase.copy}</p></div>
       <div className="final-actions grid grid-cols-2 gap-2">
-        {ventPhase === 1 && <>{action('[INT 판정] 회로 차단', `DC ${flags.knows_fan_circuit ? 9 : 12} · 1턴`, () => game.handleStage5Action('INT'))}{action('[STR 판정] 회전축 파괴', 'DC 11 · 1턴', () => game.handleStage5Action('STR'), owns('crowbar', 'laptop_bag', 'tumbler', 'extinguisher'))}{action('[DEX 판정] 날개 틈 도약', 'DC 14 · 1턴', () => game.handleStage5Action('DEX'))}{action('[도구 정공법] 배기팬 정지', '스패너 / 멀티툴 / 산성액 · 확정 · 1턴', () => game.handleStage5Action('TOOL_WRENCH'), owns('wrench', 'multitool', 'acid_vial'))}</>}
+        {ventPhase === 1 && <>{action('[INT 판정] 회로 차단', `DC ${flags.knows_fan_circuit ? 9 : 12} · 1턴`, () => game.handleStage5Action('INT'))}{action('[STR 판정] 회전축 파괴', 'DC 11 · 1턴', () => game.handleStage5Action('STR'), owns('crowbar', 'laptop_bag', 'tumbler', 'extinguisher'))}{action('[DEX 판정] 날개 틈 도약', 'DC 14 · 1턴', () => game.handleStage5Action('DEX'))}{fanTools.map((tool) => action('[' + tool.kind + '] ' + tool.label, tool.hint, () => game.handleStage5Action(tool.action)))}</>}
         {ventPhase === 2 && <>{action('방수 랜턴 섬광', '확정 견제 · 0턴', () => game.handleVentDefense('LANTERN'), owns('lantern'))}{action('소화기 분사', '확정 견제 · 0턴', () => game.handleVentDefense('EXTINGUISHER'), owns('extinguisher'))}{action('커터칼로 촉수 절단', 'DEX DC 10 · 1턴', () => game.handleVentDefense('CUTTER'), owns('cutter'))}{action('맨몸으로 강행', 'HP -7 / SAN -4 · 1턴', () => game.handleVentDefense('NONE'))}</>}
-        {ventPhase === 3 && <>{action('빠루 + 타격도구 연계', '스패너 / 텀블러 / 소화기 · 확정 · 1턴', () => game.handleVentEscape('COMBO'), owns('crowbar') && owns('wrench', 'tumbler', 'extinguisher'))}{action('[STR 판정] 맨홀 밀어 올리기', `DC ${owns('crowbar') ? 9 : 14} · 1턴`, () => game.handleVentEscape('STR'))}</>}
+        {ventPhase === 3 && <>{comboTools.map((tool) => action('[장비 연계] 쇠지렛대 + ' + tool.label, '확정 · 1턴', () => game.handleVentEscape('COMBO', tool.id), owns('crowbar')))}{action('[STR 판정] 맨홀 밀어 올리기', `DC ${owns('crowbar') ? 9 : 14} · 1턴`, () => game.handleVentEscape('STR'))}</>}
       </div><p className="final-warning">시간이 다하거나 HP / SAN이 0이 되면, 지상 바로 아래에서 탈출에 실패합니다.</p>
     </section>}
   </main>;

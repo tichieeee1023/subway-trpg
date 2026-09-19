@@ -5,6 +5,7 @@ import TypedText from './TypedText.jsx';
 
 export default function StoryDisplay({ activeModalText, onAdvance }) {
   const text = activeModalText?.body ?? '';
+  const illustrations = activeModalText?.illustrations ?? (activeModalText?.illustration ? [activeModalText.illustration] : []);
   const { count, done, finish } = useTypewriter(text);
   const advance = useCallback(() => { if (!done) finish(); else onAdvance(); }, [done, finish, onAdvance]);
   useEffect(() => {
@@ -30,11 +31,25 @@ activeModalText && (
             )}
             </div>
           </div>
-          {activeModalText.illustration && (
-            <figure className="story-illustration">
-              <img src={activeModalText.illustration.img} alt={activeModalText.illustration.name} />
-              <figcaption>{activeModalText.illustration.name}</figcaption>
-            </figure>
+          {illustrations.length > 0 && (
+            <div className={'story-illustrations' + (illustrations.length > 1 ? ' story-illustrations--paired' : '')}>
+              {illustrations.map((item) => (
+                <figure key={item.id} className="story-illustration">
+                  <img src={item.img} alt={item.name} />
+                  <figcaption>{item.name}</figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+          {activeModalText.modifiers?.length > 0 && (
+            <div className="story-modifiers" aria-label="판정 및 피해 변화">
+              {activeModalText.modifiers.map(({ label, from, to, tone = 'damage' }, index) => (
+                <p key={label + '-' + index}>
+                  <span>{label}</span>
+                  <strong><i className={tone === 'benefit' ? 'typed-benefit' : 'typed-damage'}>{from}</i> → <i className={tone === 'benefit' ? 'typed-benefit' : 'typed-damage'}>{to}</i></strong>
+                </p>
+              ))}
+            </div>
           )}
           {activeModalText.rewardItems?.length > 0 && (
             <div className={`story-rewards ${activeModalText.rewardItems.length === 1 ? 'story-rewards--single' : ''}`} aria-label="획득한 도구">
