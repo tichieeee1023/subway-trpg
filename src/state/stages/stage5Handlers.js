@@ -1,4 +1,4 @@
-import { getEscapeEnding } from '../../data/endingDB.js';
+import { ENDING_DEFINITIONS, getEscapeEnding } from '../../data/endingDB.js';
 import { ITEM_DATABASE as I } from '../../data/itemDB.js';
 import { applyDamage, canAct, checkCollapse, finishGame, hasItem } from '../gameRules.js';
 
@@ -16,7 +16,7 @@ export function createStage5Handlers(context) {
   const showEquipment = (item, kind, body, onClose, extra = {}) => setActiveModalText({
     title: kind + ' · ' + item.name, tag: kind, illustration: item, body, onClose, ...extra,
   });
-  const commit = ({ phase, cost = 1, hp = 0, san = 0, title, body, consume, flags = {}, onClose = afterAction }) => {
+  const commit = ({ phase, cost = 1, hp = 0, san = 0, title, body, consume, emptyItem, flags = {}, onClose = afterAction }) => {
     setTurnLimit((turns) => Math.max(0, turns - cost));
     setVentPhase(phase);
     if (phase === 2) triggerScreenEffect('electric', 480);
@@ -24,7 +24,8 @@ export function createStage5Handlers(context) {
     setFlags((previous) => ({ ...previous, ...flags }));
     setPlayer((player) => {
       const updated = applyDamage(player, hp, san);
-      return consume ? { ...updated, inventory: updated.inventory.filter((item) => item.id !== consume) } : updated;
+      const inventory = consume ? updated.inventory.filter((item) => item.id !== consume) : updated.inventory;
+      return { ...updated, inventory: emptyItem ? inventory.map((item) => item.id === emptyItem ? { ...item, empty: true } : item) : inventory };
     });
     addLog(`${title} · ${cost}턴 소모`);
     setActiveModalText({ title, body: body + '\n\n' + (cost === 0 ? '턴 소모 없음.' : cost + '턴 소모.'), onClose });
@@ -45,36 +46,46 @@ export function createStage5Handlers(context) {
             : '6호차 밸브를 열던 비상 스패너로 전원 볼트를 풀었다. 배기팬이 멈췄다.';
         const complete = () => commit({ phase: 2, consume: tool === 'acid_vial' ? tool : undefined,
           hp: tool === 'acid_vial' && !gloves ? 2 : 0, flags: { fanStopped: true },
-          title: '도구 정공법 — 배기팬 정지', body: toolBody });
+          title: '배기팬 정지 성공', body: toolBody });
         if (tool !== 'acid_vial') { complete(); return; }
-        setActiveModalText({ title: '산성액 접촉 위험', body: '베어링이 녹아내리며 산성액이 틈 밖으로 튀었다.',
+       setActiveModalText({
+  title: '산성액이 튀었다',
+  body: '베어링이 녹아내리는 순간 산성액이 바깥으로 튀었다.',
           onClose: () => {
             if (!gloves) { complete(); return; }
-            showEquipment(I.RUBBER_GLOVES, '장비 효과', '산성액이 손등으로 튀었다. 절연 고무장갑의 두꺼운 층이 맨살에 닿기 전에 막아 냈다.',
+            showEquipment(I.RUBBER_GLOVES, '장비 효과', '산성액이 손등으로 튀었다. 두꺼운 고무장갑이 피부에 닿기 전에 막아냈다.',
               complete, { modifiers: [{ label: '산성액 접촉 피해', from: 'HP -2', to: 'HP 0', tone: 'damage' }] });
           } });
       };
       const item = { wrench: I.WRENCH, multitool: I.MULTITOOL, acid_vial: I.ACID_VIAL }[tool];
       const kind = tool === 'wrench' ? '장비 재사용' : '장비 사용';
       const useText = tool === 'wrench'
-        ? '초반 객차에서 밸브를 열었던 스패너를 다시 꺼냈다. 모터 전원 볼트에 걸고 몸무게를 실었다.'
-        : tool === 'multitool'
-          ? '접이식 멀티툴을 펼쳤다. 좁은 틈으로 드라이버 끝을 밀어 넣어 비상 릴레이 배선을 하나씩 분리했다.'
-          : '채취병의 뚜껑을 열었다. 끈적한 산성액을 회전축 베어링 틈으로 흘려 넣었다.';
+  ? '6호차에서 사용했던 비상 스패너를 꺼냈다. 전원 볼트에 걸고 온몸의 힘을 실었다.'
+  : tool === 'multitool'
+    ? '접이식 멀티툴을 펼쳤다. 좁은 틈으로 드라이버를 밀어 넣어 릴레이 배선을 분리했다.'
+    : '채취병을 열고 산성액을 회전축 베어링 틈에 흘려 넣었다.';
       showEquipment(item, kind, useText, finishToolUse);
       return;
     }
     if (!['INT', 'STR', 'DEX'].includes(approach)) return;
     if (approach === 'STR' && !hasItem(state, 'crowbar', 'laptop_bag', 'tumbler', 'extinguisher')) return;
     const dc = approach === 'INT' ? (state.flags.knows_fan_circuit ? 9 : 12) : approach === 'STR' ? 11 : 14;
+    const successTitle = approach === 'DEX' ? '회전 날개 통과 성공' : '배기팬 정지 성공';
+    const successBody = approach === 'INT'
+      ? state.flags.knows_fan_circuit
+        ? 'CCTV에서 확인한 위치의 비상 릴레이를 차단했다. 회전하던 팬이 멈추며 사다리 통로가 열렸다.'
+        : '비상 릴레이를 찾아 차단했다. 회전하던 팬이 멈추며 사다리 통로가 열렸다.'
+      : approach === 'STR'
+        ? '회전축을 강제로 멈췄다. 배기팬이 멈추며 사다리 통로가 열렸다.'
+        : '회전 날개 사이를 빠져나왔다. 사다리 아래에서 촉수가 기어오고 있다.';
+    const failureTitle = approach === 'DEX' ? '회전 날개 통과 실패' : '배기팬 정지 실패';
     const roll = () => openDiceCheck(approach + ' · 배기팬 ' + (approach === 'INT' ? '회로 차단' : approach === 'STR' ? '회전축 파괴' : '날개 틈 도약'), approach, dc,
-      () => commit({ phase: 2, flags: { fanStopped: true }, title: '배기팬 구간 돌파',
-        body: approach === 'INT' && state.flags.knows_fan_circuit ? 'CCTV에서 확인한 위치대로 비상 릴레이를 차단했다. 회전 날개가 멈추며 사다리 통로가 열렸다.' : '회전 날개를 통과했다. 사다리 아래에서 촉수가 발목을 더듬는다.' }),
+      () => commit({ phase: 2, flags: approach === 'DEX' ? {} : { fanStopped: true }, title: successTitle, body: successBody }),
       () => {
         const gloves = approach === 'INT' && hasItem(getState(), 'rubber_gloves');
         const hp = approach === 'DEX' ? 8 : approach === 'STR' ? 6 : gloves ? 2 : 5;
         if (gloves) {
-          commit({ phase: 1, hp: 0, title: '배기팬 돌파 실패', body: '배선을 잘못 건드리는 순간 푸른 스파크가 튀었다. 강한 전류가 팔을 타고 올라왔다.',
+          commit({ phase: 1, hp: 0, title: failureTitle, body: '배선을 잘못 건드렸다. 푸른 스파크가 손바닥을 태웠다.',
             onClose: () => {
               showEquipment(I.RUBBER_GLOVES, '장비 효과', '전류가 장갑을 타고 튀었다. 두꺼운 고무층이 충격을 줄여 손끝의 마비가 빠르게 약해졌다.',
                 () => {
@@ -86,14 +97,14 @@ export function createStage5Handlers(context) {
             } });
           return;
         }
-        const failureBody = approach === 'INT' ? '푸른 스파크가 손바닥을 태웠다. HP -5. 다른 접근법을 확인해야 한다.'
-          : approach === 'STR' ? '회전축과 파편에 부딪혔다. HP -6. 다른 접근법을 확인해야 한다.'
-            : '도약이 늦었다. 날개와 파편에 부상을 입었다. HP -8.';
-        commit({ phase: 1, hp, title: '배기팬 돌파 실패', body: failureBody });
+        const failureBody = approach === 'INT' ? '배선을 잘못 건드렸다. 푸른 스파크가 손바닥을 태웠다. HP -5.'
+          : approach === 'STR' ? '회전축이 튕겨 나오며 금속 파편에 부딪혔다. HP -6.'
+            : '도약이 늦었다. 회전 날개에 몸을 스쳤다. HP -8.';
+        commit({ phase: 1, hp, title: failureTitle, body: failureBody });
       });
     if (approach === 'INT' && state.flags.knows_fan_circuit) {
-      setActiveModalText({ title: '사전 조사 정보', tag: '단서 회상',
-        body: 'CCTV 화면에서 확인했던 수직 사다리와 배기팬의 메인 차단기 위치가 떠올랐다. 비상 정지 릴레이의 위치를 이미 알고 있었다.',
+      setActiveModalText({ title: 'CCTV에서 본 위치가 떠올랐다', tag: '단서 회상',
+        body: 'CCTV에서 확인했던 배기팬과 비상 릴레이 위치가 떠올랐다. 어디를 건드려야 할지 이미 알고 있다.',
         modifiers: [{ label: 'INT 판정 난이도', from: 'DC 12', to: 'DC ' + dc, tone: 'benefit' }], onClose: roll });
       return;
     }
@@ -109,19 +120,21 @@ export function createStage5Handlers(context) {
     if (approach === 'LANTERN' || approach === 'EXTINGUISHER') {
       const id = approach === 'LANTERN' ? 'lantern' : 'extinguisher';
       if (!hasItem(state, id)) return;
+      const extinguisher = state.player.inventory.find((item) => item.id === 'extinguisher');
+      if (approach === 'EXTINGUISHER' && extinguisher.empty) return;
       const item = approach === 'LANTERN' ? I.LANTERN : I.EXTINGUISHER;
       const useText = approach === 'LANTERN'
-        ? '방수 랜턴을 켰다. 강한 백색광이 갱도를 가르자 검은 촉수들이 빛을 피해 움츠러들었다.'
-        : '안전핀을 뽑고 좁은 통로 안으로 흰 분말을 한꺼번에 분사했다. 촉수들이 벽 쪽으로 물러났다.';
-      showEquipment(item, '장비 사용', useText, () => commit({ phase: 3, cost: 0, flags: { creatureBlocked: true }, title: '촉수 견제 성공',
-        body: approach === 'LANTERN' ? '괴물이 움츠러든 틈에 시간을 잃지 않고 사다리를 올랐다.' : '분말에 밀린 촉수를 지나 사다리를 올랐다. 빈 소화기 통은 맨홀 타격에 쓸 수 있었다.' }));
+        ? '방수 랜턴을 켰다. 강한 백색광이 갱도를 비추자 검은 촉수들이 움츠러들었다.'
+        : '안전핀을 뽑고 통로 안으로 분말을 분사했다. 촉수들이 벽 쪽으로 물러났다.';
+      showEquipment(item, '장비 사용', useText, () => commit({ phase: 3, cost: 0, emptyItem: approach === 'EXTINGUISHER' ? 'extinguisher' : undefined, flags: { creatureBlocked: true }, title: '촉수 견제 성공',
+        body: approach === 'LANTERN' ? '촉수들이 빛을 피해 물러난 틈에 곧바로 사다리를 올랐다.' : '분말에 밀린 촉수 사이로 사다리를 올랐다. 빈 소화기 통은 아직 사용할 수 있다.' }));
     } else if (approach === 'CUTTER') {
       if (!hasItem(state, 'cutter')) return;
       openDiceCheck('커터칼 · 발목을 감은 촉수 절단', 'DEX', 10,
-        () => commit({ phase: 3, flags: { creatureBlocked: true }, title: '촉수 절단 성공', body: '칼날로 촉수를 베어내고 사다리를 올랐다.' }),
-        () => commit({ phase: 3, hp: 6, san: 3, title: '촉수 절단 실패', body: '촉수의 타격을 허용하며 간신히 기어올랐다. HP -6, SAN -3.' }));
+        () => commit({ phase: 3, flags: { creatureBlocked: true }, title: '촉수를 잘라냈다', body: '발목을 감은 촉수를 잘라내고 곧바로 사다리를 올랐다.' }),
+        () => commit({ phase: 3, hp: 6, san: 3, title: '촉수 절단 실패', body: '촉수를 완전히 끊지 못했다. 몸을 휘감은 촉수를 떼어내며 간신히 사다리를 올랐다. HP -6, SAN -3.' }));
     } else if (approach === 'NONE') {
-      commit({ phase: 3, hp: 7, san: 4, title: '맨몸으로 사다리 돌파', body: '촉수를 떼어내며 사다리를 올랐다. HP -7, SAN -4.' });
+      commit({ phase: 3, hp: 7, san: 4, title: '맨몸으로 사다리를 오른다', body: '달라붙는 촉수를 손으로 떼어내며 사다리를 올랐다. HP -7, SAN -4.' });
     }
   };
   const handleVentEscape = (approach, selectedStrikerId = null) => {
@@ -134,21 +147,26 @@ export function createStage5Handlers(context) {
     const escape = () => {
       setTurnLimit((turns) => Math.max(0, turns - 1));
       triggerScreenEffect('surface-light', 1100);
-      finishGame(context, getEscapeEnding(getState().player));
+      const endingId = getEscapeEnding(getState().player);
+      const endingDesc = hasItem(getState(), 'clue_skin')
+        ? ENDING_DEFINITIONS[endingId].desc + '\n\n가방 안 비닐봉지에는 역무원실에서 챙긴 피부 조직이 남아 있었다.\n\n적어도 오늘 밤의 일이 내 머릿속에서만 벌어진 일은 아니었다.'
+        : undefined;
+      finishGame(context, endingId, endingDesc);
     };
     if (approach === 'COMBO') {
       if (!crowbar || !strikerId) return;
-      addLog('빠루 + 타격도구 지렛대 연계: 맨홀 확정 개방.');
+      addLog('쇠지렛대와 타격 도구를 함께 사용해 맨홀을 열었다.');
       const striker = { wrench: I.WRENCH, tumbler: I.TUMBLER, extinguisher: I.EXTINGUISHER }[strikerId];
+      const extinguisher = getState().player.inventory.find((item) => item.id === 'extinguisher');
       const secondToolText = strikerId === 'extinguisher'
-        ? '분말을 모두 쓴 소화기 통으로 빠루의 끝을 힘껏 내리쳤다.'
-        : strikerId === 'wrench' ? '비상 스패너로 빠루 손잡이를 힘껏 내리쳤다.' : '묵직한 텀블러로 빠루 손잡이를 힘껏 내리쳤다.';
-      setActiveModalText({ title: '장비 연계 · 쇠지렛대 + ' + striker.name, tag: '장비 연계',
+        ? extinguisher.empty ? '분말을 다 쓴 소화기 통으로 쇠지렛대 손잡이를 힘껏 내리쳤다.' : '휴대용 소화기 통으로 쇠지렛대 손잡이를 힘껏 내리쳤다.'
+        : strikerId === 'wrench' ? '비상 스패너로 쇠지렛대 손잡이를 힘껏 내리쳤다.' : '묵직한 텀블러로 쇠지렛대 손잡이를 힘껏 내리쳤다.';
+      setActiveModalText({ title: '쇠지렛대 + ' + striker.name, tag: '도구 조합',
         illustrations: [I.CROWBAR, striker],
-        body: '쇠지렛대를 맨홀 틈에 깊숙이 걸었다. ' + secondToolText + '\n\n쾅! 녹이 붙은 뚜껑이 크게 들썩였다.',
+        body: '쇠지렛대를 맨홀 틈에 깊숙이 끼웠다. ' + secondToolText + '\n\n쾅!\n녹슨 뚜껑이 크게 들썩였다.',
         onClose: escape });
     } else {
-      const roll = () => openDiceCheck('주철 맨홀 뚜껑 최종 개방', 'STR', crowbar ? 9 : 14, escape,
+      const roll = () => openDiceCheck('맨홀 뚜껑 열기', 'STR', crowbar ? 9 : 14, escape,
         () => commit({ phase: 3, hp: 3, title: '맨홀 개방 실패', body: '녹슨 뚜껑이 꿈쩍하지 않는다. 어깨에 통증이 번진다. HP -3.' }));
       if (crowbar) {
         showEquipment(I.CROWBAR, '장비 사용', '쇠지렛대의 납작한 끝을 맨홀 틈에 깊숙이 밀어 넣었다. 손잡이에 몸무게를 실어 녹슨 뚜껑을 들어 올릴 준비를 했다.', roll,

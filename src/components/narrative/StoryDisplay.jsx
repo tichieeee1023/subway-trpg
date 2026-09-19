@@ -35,8 +35,8 @@ activeModalText && (
             <div className={'story-illustrations' + (illustrations.length > 1 ? ' story-illustrations--paired' : '')}>
               {illustrations.map((item) => (
                 <figure key={item.id} className="story-illustration">
-                  <img src={item.img} alt={item.name} />
-                  <figcaption>{item.name}</figcaption>
+                  {item.img ? <img src={item.img} alt={item.name} /> : <span className="story-illustration__icon" aria-hidden="true">{item.icon}</span>}
+                  <figcaption>{item.caption ?? item.name}</figcaption>
                 </figure>
               ))}
             </div>

@@ -19,8 +19,6 @@ import MobileInventoryDock from './components/sheet/MobileInventoryDock.jsx';
 import CreditsModal from './components/modal/CreditsModal.jsx';
 import { getRelevantItemIds } from './utils/itemRelevance.js';
 
-const OPENING_STORAGE_KEY = 'subway-opening-seen-v1';
-
 export default function App() {
   const sfx = useAudioSynth();
   const { settings, updateSettings } = useGameSettings();
@@ -29,15 +27,12 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [hasActiveRun, setHasActiveRun] = useState(false);
   const [showOpening, setShowOpening] = useState(false);
-  const [hasSeenOpening, setHasSeenOpening] = useState(() => {
-    try { return localStorage.getItem(OPENING_STORAGE_KEY) === '1'; } catch { return false; }
-  });
   const [utility, setUtility] = useState(null);
   const [celebrationActive, setCelebrationActive] = useState(false);
   const { collected, unlockAllEndings } = useEndingCollection(game.endingData);
   const collectionUnlocked = collected.length > 0;
   const collectionComplete = collected.length === 6;
-  const highlightedItemIds = settings.easyMode ? getRelevantItemIds(game.stage, game.ventPhase) : [];
+  const highlightedItemIds = settings.easyMode ? getRelevantItemIds(game.stage, game.ventPhase, game.flags) : [];
   const openCollection = () => { if (collectionUnlocked) setUtility('collection'); };
   useEffect(() => {
     if (!import.meta.env.DEV || showOpening || (!showIntro && game.stage !== 'SURVEY') || utility) return;
@@ -57,8 +52,6 @@ export default function App() {
     setSoundEnabled(!soundEnabled);
   };
   const completeOpening = () => {
-    try { localStorage.setItem(OPENING_STORAGE_KEY, '1'); } catch { /* The current session can still continue. */ }
-    setHasSeenOpening(true);
     sfx.playClick();
     setShowOpening(false);
   };
@@ -76,7 +69,7 @@ export default function App() {
   return (
     <MainLayout isGlitching={game.isGlitching && !settings.disableEffects}>
       {game.screenEffect && !settings.disableEffects && <div key={game.screenEffect.key} className={`screen-effect screen-effect--${game.screenEffect.type}`} aria-hidden="true" />}
-      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setHasActiveRun(true); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onContinue={() => { sfx.playClick(); setShowOpening(false); setShowIntro(false); }} hasActiveRun={hasActiveRun} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} celebrationActive={celebrationActive} onCelebrationFinish={() => setCelebrationActive(false)} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
+      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setHasActiveRun(true); setShowIntro(false); setShowOpening(true); }} onContinue={() => { sfx.playClick(); setShowOpening(false); setShowIntro(false); }} hasActiveRun={hasActiveRun} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} celebrationActive={celebrationActive} onCelebrationFinish={() => setCelebrationActive(false)} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
       <GameHeader {...game} soundEnabled={soundEnabled} toggleSound={toggleSound} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onHint={() => setUtility('hint')} />
       {game.stage === 'ENDING' ? (
         <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} />

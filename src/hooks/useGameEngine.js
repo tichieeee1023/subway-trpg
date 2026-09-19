@@ -144,7 +144,7 @@ const dismissDice = () => {
 const context = { player, ap, turnLimit, examinedPoints, flags, setStage, setPlayer, setAp, setTurnLimit, setVentPhase, setExaminedPoints, setActiveModalText, setFlags, setLogs, setEndingData, sfx, addLog, triggerGlitch, triggerScreenEffect, openDiceCheck, openConditionDice, dispatch, getState };
 const handlers = Object.fromEntries([
   'handleSelectArchetype', 'handleRollCondition', 'examineCar6Point',
-  'examineTunnelPoint', 'examinePlatformPoint', 'choosePlatformExit',
+  'examineTunnelPoint', 'examinePlatformPoint', 'choosePlatformExit', 'handleFakeStationResistance',
   'examineMallPoint', 'handleStage5Action', 'handleVentDefense', 'handleVentEscape', 'handleUseItem', 'handlePushManhole',
 ].map((name) => [name, (...args) => createStageHandlers(context)[name](...args)]));
 const handleRestart = () => {

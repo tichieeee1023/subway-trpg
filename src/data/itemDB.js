@@ -19,7 +19,6 @@ export const ITEM_DATABASE = {
   ACID_VIAL: item('acid_vial', '산성 점액 채취병', 'item_clue_acid_vial', '배기팬 용해 · 사용 시 소모'),
 
   KEY_CARD: item('key_card', '마스터 카드키', 'item_key_card', '방화문 전자 잠금 해제'),
-  KEY_BRASS: item('key_brass', '황동 열쇠', 'item_key_brass'),
   POWERBANK: item('powerbank', '보조배터리', 'item_device_powerbank', '충전 완료'),
   PHONE: item('phone', '스마트폰', 'item_device_phone'),
 
@@ -32,8 +31,6 @@ export const ITEM_DATABASE = {
   ENERGY: { ...item('energy_drink', '에너지 드링크', 'item_energy_drink', '사용 시 HP +5'), consumable: true, hpRestore: 5 },
   CLUE_SKIN: item('clue_skin', '역무원 허물', 'item_clue_skin'),
   CLUE_MAP: item('clue_map', '왜곡된 노선도', 'item_clue_torn_map'),
-  CLUE_SHOES: item('clue_shoes', '녹아내린 구두', 'item_clue_melted_shoes'),
-  RECEIPT: item('receipt', '편의점 영수증', 'item_clue_receipt'),
 };
 
 export const ITEM_DB = {
@@ -47,16 +44,16 @@ export const ITEM_DB = {
   wrench: ITEM_DATABASE.WRENCH,
   lantern: ITEM_DATABASE.LANTERN,
   prybar: ITEM_DATABASE.CROWBAR,
-  master_key: ITEM_DATABASE.KEY_BRASS,
   master_card: ITEM_DATABASE.KEY_CARD,
   multitool: ITEM_DATABASE.MULTITOOL,
-  glasses: { id: 'glasses', name: '블루라이트 차단 안경', desc: '세부 관찰 보조', icon: '👓' },
-  protein_bar: { id: 'protein_bar', name: '단백질 바', desc: '사용 시 HP +5', icon: '🍫', consumable: true, hpRestore: 5 },
-  running_shoes: { id: 'running_shoes', name: '쿠션 러닝화', desc: '민첩 기동 보조', icon: '👟' },
-  metal_pen: { id: 'metal_pen', name: '고급 금속 만년필', desc: '날카로운 비상 찌르개', icon: '🖊️' },
+  glasses: item('glasses', '블루라이트 차단 안경', 'item_gear_glasses', '세부 관찰 보조'),
+  protein_bar: { ...item('protein_bar', '단백질 바', 'item_food_protein_bar', '사용 시 HP +5'), consumable: true, hpRestore: 5 },
+  running_shoes: item('running_shoes', '쿠션 러닝화', 'item_gear_sneakers', '민첩 기동 보조'),
+  metal_pen: item('metal_pen', '고급 금속 만년필', 'item_tool_fountain_pen', '날카로운 비상 찌르개'),
   lucky_coin: item('lucky_coin', '행운의 100원 동전', 'item_gear_coin', '도구 틈새 쐐기'),
 };
 
 export const ITEM_ASSET_FILES = Object.fromEntries(
-  Object.values(ITEM_DATABASE).map(({ img }) => [`public${img}`, img]),
+  [...Object.values(ITEM_DATABASE), ...Object.values(ITEM_DB)]
+    .map(({ img }) => [`public${img}`, img]),
 );

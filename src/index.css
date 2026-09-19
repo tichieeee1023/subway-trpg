@@ -74,6 +74,12 @@ h1, h2, h3, p { margin: 0; }
 .exploration-rule strong { flex-shrink: 0; color: #ffd75c; }
 .exploration-rule.is-empty { border-left-color: #74858b; background: #101519; }
 .exploration-rule.is-empty strong { color: #a8bbbe; }
+.resistance-encounter { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid #79434b; background: linear-gradient(135deg, #1b1015, #111318); box-shadow: inset 0 0 0 1px #3d242a; }
+.resistance-encounter__heading { display: grid; gap: 4px; }
+.resistance-encounter__heading > span { color: #e7a0a0; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.resistance-encounter__heading h3 { color: #f2ded7; font-size: 20px; line-height: 1.35; }
+.resistance-encounter__heading p { color: #c8b6b4; font-size: 14px; }
+.resistance-encounter__actions .choice-card { border-color: #75434a; }
 .final-encounter { display: flex; flex-direction: column; gap: 12px; }
 .final-hud { display: flex; align-items: stretch; justify-content: space-between; border: 1px solid #796238; background: linear-gradient(90deg, #211b10, #120e11); box-shadow: inset 0 0 0 1px #4b3a20; }
 .final-hud > div:first-child { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; padding: 10px 14px; border-left: 4px solid #e5b64e; }
@@ -199,6 +205,7 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 .story-illustrations--paired { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .story-illustration { min-width: 0; margin: 0; padding: 10px; border: 1px solid #4d5a58; background: #090e11; }
 .story-illustration img { display: block; width: 100%; height: 146px; object-fit: contain; }
+.story-illustration__icon { display: grid; min-height: 146px; place-items: center; color: #f2e8ce; font-size: 64px; }
 .story-illustration figcaption { margin-top: 7px; color: #b5c0b9; text-align: center; font: 13px var(--story-font); overflow-wrap: anywhere; }
 .story-modifiers { display: grid; gap: 8px; padding: 12px; border: 1px solid #465b5e; background: #0a1114; }
 .story-modifiers p { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; color: #c6d0cb; font: 15px/1.5 var(--story-font); }
@@ -335,6 +342,7 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
   .story-dialog__tag { flex: 0 1 auto; max-width: 180px; font-size: 12px; }
   .story-illustrations--paired .story-illustration { padding: 8px; }
   .story-illustrations--paired .story-illustration img { height: 112px; }
+  .story-illustrations--paired .story-illustration__icon { min-height: 112px; font-size: 48px; }
   .story-illustrations--paired .story-illustration figcaption { font-size: 11px; }
   /* Keep both rewards visible, but stack each card's icon and label so the
      label has the full card width on narrow screens. */

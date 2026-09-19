@@ -10,9 +10,10 @@ import { ARCHETYPES } from '../src/data/surveyDB.js';
 import { FATIGUE_ROLL_TABLE } from '../src/data/conditionDB.js';
 import { executeD20Check, getSuccessProbability } from '../src/utils/diceEngine.js';
 import { PUBLIC_ASSET_FILES } from '../src/data/assetDB.js';
-import { ITEM_DATABASE as I, ITEM_DB } from '../src/data/itemDB.js';
+import { ITEM_ASSET_FILES, ITEM_DATABASE as I, ITEM_DB } from '../src/data/itemDB.js';
 import { EXPLORATION_STAGES } from '../src/data/explorationDB.js';
-import { getEscapeEnding } from '../src/data/endingDB.js';
+import { ENDING_DEFINITIONS, getEscapeEnding } from '../src/data/endingDB.js';
+import { getFakeStationActions } from '../src/data/fakeStationActions.js';
 import { advanceStoryModal } from '../src/utils/storyFlow.js';
 import { applyDamage, grantItems } from '../src/state/gameRules.js';
 import { parseEndingCollection } from '../src/utils/endingCollection.js';
@@ -22,16 +23,17 @@ function harness(stage = 'SURVEY') {
   let succeed = true;
   let roll = 14;
   const checks = [];
+  const logs = [];
   const update = (field, value) => { state = gameReducer(state, { type: GAME_ACTIONS.UPDATE_FIELD, field, value }); };
   const context = {
-    getState: () => state, sfx: new Proxy({}, { get: () => () => {} }), addLog: () => {}, triggerGlitch: () => {},
+    getState: () => state, sfx: new Proxy({}, { get: () => () => {} }), addLog: (entry) => logs.push(entry), triggerGlitch: () => {},
     dispatch: (action) => { state = gameReducer(state, action); },
     openDiceCheck: (title, stat, dc, success, failure) => { checks.push({ title, stat, dc }); (succeed ? success : failure)(); },
     openConditionDice: (resolve) => resolve(roll),
   };
   for (const field of Object.keys(state)) context[`set${field[0].toUpperCase()}${field.slice(1)}`] = (value) => update(field, value);
   return {
-    get state() { return state; }, checks, update,
+    get state() { return state; }, checks, logs, update,
     outcome(value) { succeed = value; }, condition(value) { roll = value; },
     handlers: () => createStageHandlers({ ...state, ...context }),
     close() { if (state.activeModalText) advanceStoryModal(state.activeModalText, (value) => update('activeModalText', value)); },
@@ -69,9 +71,13 @@ test('condition boundaries respect SAN 15 and correct HP maxima; female profile 
   }
 });
 
-test('all linked portraits/scenes/six cards and 29 item entries resolve to existing WebP files', () => {
-  assert.equal(Object.keys(PUBLIC_ASSET_FILES).length, 29); assert.equal(Object.keys(I).length, 29);
+test('all linked portraits/scenes/cards and item graphics resolve to existing WebP files', () => {
+  assert.equal(Object.keys(PUBLIC_ASSET_FILES).length, 29); assert.equal(Object.keys(I).length, 26);
   for (const path of Object.keys(PUBLIC_ASSET_FILES)) {
+    assert.match(path, /\.webp$/); assert.ok(existsSync(fileURLToPath(new URL(`../${path}`, import.meta.url))), path);
+  }
+  assert.equal(Object.keys(ITEM_ASSET_FILES).length, 31);
+  for (const path of Object.keys(ITEM_ASSET_FILES)) {
     assert.match(path, /\.webp$/); assert.ok(existsSync(fileURLToPath(new URL(`../${path}`, import.meta.url))), path);
   }
   for (const item of Object.values(I)) {
@@ -79,6 +85,10 @@ test('all linked portraits/scenes/six cards and 29 item entries resolve to exist
   }
   assert.match(ITEM_DB.lucky_coin.img, /item_gear_coin\.webp$/);
   assert.ok(existsSync(fileURLToPath(new URL(`../public${ITEM_DB.lucky_coin.img}`, import.meta.url))), ITEM_DB.lucky_coin.img);
+  assert.equal(I.KEY_BRASS, undefined);
+  assert.equal(I.CLUE_SHOES, undefined);
+  assert.equal(I.RECEIPT, undefined);
+  assert.equal(ITEM_DB.master_key, undefined);
 });
 
 test('each exploration has six unique choices; repeated, invalid and modal-blocked actions consume no AP', () => {
@@ -113,13 +123,93 @@ test('last AP wrench reward appears and permits escape; no wrench ends at BAD 1'
   }
 });
 
-test('platform route requires three investigations and fake exit without anomalies produces BAD 2', () => {
+test('platform route requires three investigations and an unrecognized false exit starts the last resistance', () => {
   const game = harness('STAGE_3_PLATFORM');
   game.handlers().choosePlatformExit('EXIT_3'); assert.equal(game.state.activeModalText, null);
   for (const id of ['m2_vending', 'm5_acid', 'm6_breaker']) { game.handlers().examinePlatformPoint(id); game.drain(); }
   assert.equal(game.state.flags.anomalyCount, 0);
-  game.handlers().choosePlatformExit('EXIT_3'); assert.match(game.state.activeModalText.image.src, /trap_exit/);
-  game.drain(); assert.equal(game.state.endingData.id, 'BAD_2');
+  game.handlers().choosePlatformExit('EXIT_3');
+  assert.equal(game.state.activeModalText.title, '계단을 오르려는 순간');
+  assert.match(game.state.activeModalText.image.src, /trap_exit/);
+  assert.equal(game.state.flags.fakeStationResistance, true);
+  game.drain(); assert.equal(game.state.endingData, null);
+  assert.equal(game.state.flags.fakeStationPhase, 1);
+});
+
+test('powerbank immediately charges the phone, while dissolved shoes remain an investigation flag', () => {
+  const game = harness('STAGE_1_CAR6');
+  game.handlers().examineCar6Point('p1_padding');
+  assert.equal(game.state.player.battery, 40);
+  assert.deepEqual(game.state.player.inventory.map((item) => item.id), ['cutter']);
+  assert.deepEqual(game.state.activeModalText.illustrations.map((item) => item.id), ['powerbank', 'cutter']);
+  assert.deepEqual(game.state.activeModalText.illustrations.map((item) => item.caption), ['즉시 사용 · 보조배터리', '획득 · 소형 커터칼']);
+  assert.deepEqual(game.state.activeModalText.rewardItems, []);
+  assert.deepEqual(game.state.activeModalText.modifiers[0], { label: '스마트폰 배터리', from: '20%', to: '40%', tone: 'benefit' });
+  assert.equal(game.state.activeModalText.illustrations.some((item) => item.id === 'powerbank' && item.caption.startsWith('획득')), false);
+  game.drain();
+
+  const clue = harness('STAGE_1_CAR6');
+  clue.handlers().examineCar6Point('p6_floor');
+  assert.equal(clue.state.flags.knows_dissolution, true);
+  assert.equal(clue.state.player.inventory.some((item) => item.id === 'clue_shoes'), false);
+});
+
+test('false exit opens a two-step resistance sequence and successful items affect later inventory', () => {
+  const game = harness('STAGE_3_PLATFORM'); game.update('ap', 0); game.items(I.EXTINGUISHER, ITEM_DB.tumbler, I.CROWBAR);
+  game.handlers().choosePlatformExit('EXIT_3'); game.drain();
+  assert.equal(game.state.flags.fakeStationPhase, 1);
+
+  game.handlers().handleFakeStationResistance('EXTINGUISHER');
+  assert.equal(game.state.player.inventory.find((item) => item.id === 'extinguisher').empty, true);
+  game.close();
+  assert.equal(game.state.flags.fakeStationPhase, 2);
+  assert.equal(game.state.flags.fakeStationEscapeBonus, 4);
+  assert.equal(game.state.activeModalText.title, '빠져나갈 틈이 생겼다');
+  game.close();
+
+  game.handlers().handleFakeStationResistance('TUMBLER');
+  assert.equal(game.state.player.inventory.some((item) => item.id === 'tumbler'), false);
+  game.close();
+  assert.equal(game.state.stage, 'STAGE_3_PLATFORM');
+  assert.equal(game.state.activeModalText.title, '환승 통로로 탈출했다');
+  assert.equal(game.state.flags.fakeStationSurvived, true);
+  assert.equal(game.state.flags.fakeStationResistance, true);
+  game.close();
+  assert.equal(game.state.stage, 'STAGE_4_MALL');
+  assert.equal(game.state.endingData, null);
+  assert.equal(game.state.player.hp, 17); assert.equal(game.state.player.san, 13);
+  assert.equal(game.state.player.inventory.find((item) => item.id === 'extinguisher').empty, true);
+  assert.equal(game.state.player.inventory.some((item) => item.id === 'crowbar'), true);
+  assert.equal(game.state.activeModalText, null);
+});
+
+test('failed resistance preserves BAD_2 and bare hands remain available without items', () => {
+  const game = harness('STAGE_3_PLATFORM'); game.update('ap', 0); game.items(); game.outcome(false);
+  game.handlers().choosePlatformExit('EXIT_3'); game.drain();
+  const actions = getFakeStationActions(1, game.state.player.inventory, 0, game.state.flags);
+  assert.deepEqual(actions.map((action) => action.id), ['HANDS_STR_1', 'HANDS_DEX_1']);
+  game.handlers().handleFakeStationResistance('HANDS_STR_1');
+  assert.equal(game.state.activeModalText.title, '탈출 실패');
+  assert.equal(game.state.endingData, null);
+  game.close();
+  assert.equal(game.state.endingData.id, 'BAD_2');
+  assert.equal(game.state.endingData.title, 'BAD END 2 : 02:40 AM, 마지막 반항');
+  assert.match(game.state.endingData.desc, /끝까지 저항했지만/);
+  assert.equal(game.state.flags.fakeStationFailed, true);
+});
+
+test('all job starting items have a situational use or existing consumable effect', () => {
+  const available = (phase, arch) => getFakeStationActions(phase, arch.items, 0, {}).map((action) => action.itemId).filter(Boolean);
+  assert.ok(available(1, ARCHETYPES[0]).includes('glasses'));
+  assert.ok(available(2, ARCHETYPES[0]).includes('laptop_bag') === false);
+  assert.ok(available(2, ARCHETYPES[1]).includes('tumbler'));
+  assert.equal(ARCHETYPES[1].items.find((item) => item.id === 'protein_bar').consumable, true);
+  assert.ok(available(2, ARCHETYPES[2]).includes('lanyard'));
+  assert.ok(available(2, ARCHETYPES[2]).includes('running_shoes'));
+  assert.ok(available(1, ARCHETYPES[3]).includes('metal_pen'));
+  assert.equal(ARCHETYPES[3].items.find((item) => item.id === 'candy').consumable, true);
+  assert.ok(available(2, ARCHETYPES[4]).includes('lotto'));
+  assert.ok(available(2, ARCHETYPES[4]).includes('lucky_coin'));
 });
 
 test('only the route-map clue permits the third exit after other anomalies', () => {
@@ -128,7 +218,8 @@ test('only the route-map clue permits the third exit after other anomalies', () 
   assert.equal(withoutMap.state.flags.anomalyCount, 2);
   assert.equal(withoutMap.state.flags.clueFakeStation, false);
   withoutMap.handlers().choosePlatformExit('EXIT_3'); withoutMap.drain();
-  assert.equal(withoutMap.state.endingData.id, 'BAD_2');
+  assert.equal(withoutMap.state.endingData, null);
+  assert.equal(withoutMap.state.flags.fakeStationResistance, true);
 
   const withMap = harness('STAGE_3_PLATFORM');
   for (const id of ['m1_map', 'm2_vending', 'm5_acid']) { withMap.handlers().examinePlatformPoint(id); withMap.drain(); }
@@ -166,6 +257,35 @@ test('missing tools and wrong final phases do not alter turns or grant success',
   game.update('ventPhase', 2);
   for (const approach of ['LANTERN', 'EXTINGUISHER', 'CUTTER']) game.handlers().handleVentDefense(approach);
   assert.equal(game.state.turnLimit, 3); assert.equal(game.state.ventPhase, 2);
+});
+
+test('vent defense narration distinguishes lantern, extinguisher, cutter and bare hands', () => {
+  const lantern = harness('STAGE_5_VENT'); lantern.update('ventPhase', 2); lantern.items(I.LANTERN);
+  lantern.handlers().handleVentDefense('LANTERN');
+  assert.equal(lantern.state.activeModalText.body, '방수 랜턴을 켰다. 강한 백색광이 갱도를 비추자 검은 촉수들이 움츠러들었다.');
+  lantern.close();
+  assert.match(lantern.state.activeModalText.body, /촉수들이 빛을 피해 물러난 틈에 곧바로 사다리를 올랐다/);
+
+  const extinguisher = harness('STAGE_5_VENT'); extinguisher.update('ventPhase', 2); extinguisher.items(I.EXTINGUISHER);
+  extinguisher.handlers().handleVentDefense('EXTINGUISHER');
+  assert.equal(extinguisher.state.activeModalText.body, '안전핀을 뽑고 통로 안으로 분말을 분사했다. 촉수들이 벽 쪽으로 물러났다.');
+  extinguisher.close();
+  assert.match(extinguisher.state.activeModalText.body, /분말에 밀린 촉수 사이로 사다리를 올랐다/);
+  assert.match(extinguisher.state.activeModalText.body, /빈 소화기 통은 아직 사용할 수 있다/);
+
+  const cutter = harness('STAGE_5_VENT'); cutter.update('ventPhase', 2); cutter.items(I.CUTTER);
+  cutter.handlers().handleVentDefense('CUTTER');
+  assert.equal(cutter.state.activeModalText.title, '촉수를 잘라냈다');
+  assert.equal(cutter.state.activeModalText.body.startsWith('발목을 감은 촉수를 잘라내고 곧바로 사다리를 올랐다.'), true);
+
+  const cutterFailure = harness('STAGE_5_VENT'); cutterFailure.update('ventPhase', 2); cutterFailure.items(I.CUTTER); cutterFailure.outcome(false);
+  cutterFailure.handlers().handleVentDefense('CUTTER');
+  assert.match(cutterFailure.state.activeModalText.body, /촉수를 완전히 끊지 못했다. 몸을 휘감은 촉수를 떼어내며 간신히 사다리를 올랐다. HP -6, SAN -3\./);
+
+  const bareHands = harness('STAGE_5_VENT'); bareHands.update('ventPhase', 2);
+  bareHands.handlers().handleVentDefense('NONE');
+  assert.equal(bareHands.state.activeModalText.title, '맨몸으로 사다리를 오른다');
+  assert.match(bareHands.state.activeModalText.body, /달라붙는 촉수를 손으로 떼어내며 사다리를 올랐다. HP -7, SAN -4\./);
 });
 
 test('both zero-turn defenses preserve last turn; last-turn escape succeeds', () => {
@@ -237,10 +357,62 @@ test('gloves prevent acid contact and reduce electrical injury; CCTV lowers real
   game.update('flags', (flags) => ({ ...flags, knows_fan_circuit: true }));
   game.handlers().handleStage5Action('INT');
   assert.equal(game.checks.length, 0);
-  assert.equal(game.state.activeModalText.title, '사전 조사 정보');
+  assert.equal(game.state.activeModalText.title, 'CCTV에서 본 위치가 떠올랐다');
+  assert.equal(game.state.activeModalText.body, 'CCTV에서 확인했던 배기팬과 비상 릴레이 위치가 떠올랐다. 어디를 건드려야 할지 이미 알고 있다.');
   assert.deepEqual(game.state.activeModalText.modifiers[0], { label: 'INT 판정 난이도', from: 'DC 12', to: 'DC 9', tone: 'benefit' });
   game.close();
   assert.equal(game.checks[0].dc, 9);
+  assert.equal(game.state.activeModalText.title, '배기팬 정지 성공');
+  assert.match(game.state.activeModalText.body, /CCTV에서 확인한 위치의 비상 릴레이를 차단했다/);
+});
+
+test('fan roll result text matches the chosen approach and omits retry instructions', () => {
+  const resolve = (approach, success) => {
+    const game = harness('STAGE_5_VENT');
+    if (approach === 'STR') game.items(I.CROWBAR);
+    game.outcome(success);
+    game.handlers().handleStage5Action(approach);
+    if (game.state.activeModalText?.tag === '장비 사용') game.close();
+    return game;
+  };
+
+  const intSuccess = resolve('INT', true);
+  assert.equal(intSuccess.state.activeModalText.title, '배기팬 정지 성공');
+  assert.match(intSuccess.state.activeModalText.body, /비상 릴레이를 찾아 차단했다/);
+  const strSuccess = resolve('STR', true);
+  assert.equal(strSuccess.state.activeModalText.title, '배기팬 정지 성공');
+  assert.match(strSuccess.state.activeModalText.body, /회전축을 강제로 멈췄다/);
+  const dexSuccess = resolve('DEX', true);
+  assert.equal(dexSuccess.state.activeModalText.title, '회전 날개 통과 성공');
+  assert.match(dexSuccess.state.activeModalText.body, /회전 날개 사이를 빠져나왔다/);
+  assert.equal(dexSuccess.state.flags.fanStopped, false);
+
+  const intFailure = resolve('INT', false);
+  assert.equal(intFailure.state.activeModalText.title, '배기팬 정지 실패');
+  assert.equal(intFailure.state.activeModalText.body.startsWith('배선을 잘못 건드렸다.'), true);
+  const strFailure = resolve('STR', false);
+  assert.equal(strFailure.state.activeModalText.title, '배기팬 정지 실패');
+  assert.match(strFailure.state.activeModalText.body, /회전축이 튕겨 나오며 금속 파편에 부딪혔다/);
+  const dexFailure = resolve('DEX', false);
+  assert.equal(dexFailure.state.activeModalText.title, '회전 날개 통과 실패');
+  assert.match(dexFailure.state.activeModalText.body, /도약이 늦었다. 회전 날개에 몸을 스쳤다/);
+  for (const game of [intFailure, strFailure, dexFailure]) assert.doesNotMatch(game.state.activeModalText.body, /다른 접근법/);
+});
+
+test('only the skin evidence changes the surviving ending text, not its ending id', () => {
+  for (const ownsSkin of [false, true]) {
+    const game = harness('STAGE_5_VENT'); game.update('ventPhase', 3); game.update('turnLimit', 3);
+    game.items(I.CROWBAR, I.WRENCH, ...(ownsSkin ? [I.CLUE_SKIN] : []));
+    game.handlers().handleVentEscape('COMBO', 'wrench');
+    game.close();
+    assert.equal(game.state.endingData.id, 'TRUE');
+    assert.equal(game.state.endingData.desc.includes('역무원실에서 챙긴 피부 조직'), ownsSkin);
+    if (!ownsSkin) assert.equal(game.state.endingData.desc, ENDING_DEFINITIONS.TRUE.desc);
+  }
+  const platform = harness('STAGE_3_PLATFORM'); platform.items(I.CLUE_SKIN);
+  for (const id of ['m2_vending', 'm5_acid', 'm6_breaker']) { platform.handlers().examinePlatformPoint(id); platform.drain(); }
+  assert.ok(platform.state.player.inventory.some((item) => item.id === 'clue_skin'));
+  assert.equal(platform.state.player.inventory.some((item) => item.id === 'key_brass'), false);
 });
 
 test('acid fan method consumes only acid and glove protection applies', () => {
@@ -249,12 +421,12 @@ test('acid fan method consumes only acid and glove protection applies', () => {
   assert.equal(game.state.activeModalText.illustration.id, 'acid_vial');
   assert.ok(game.state.player.inventory.some((item) => item.id === 'acid_vial'));
   game.close();
-  assert.equal(game.state.activeModalText.title, '산성액 접촉 위험');
+  assert.equal(game.state.activeModalText.title, '산성액이 튀었다');
   game.close();
   assert.equal(game.state.activeModalText.illustration.id, 'rubber_gloves');
   assert.ok(game.state.player.inventory.some((item) => item.id === 'acid_vial'));
   game.close();
-  assert.equal(game.state.activeModalText.title, '도구 정공법 — 배기팬 정지');
+  assert.equal(game.state.activeModalText.title, '배기팬 정지 성공');
   game.drain();
   assert.equal(game.state.player.hp, 20); assert.equal(game.state.ventPhase, 2);
   assert.deepEqual(game.state.player.inventory.map((item) => item.id), ['rubber_gloves']);
@@ -289,6 +461,7 @@ test('fan failure queues the glove effect before injury and crowbar displays its
   assert.deepEqual(crowbar.state.activeModalText.modifiers[0], { label: 'STR 판정 난이도', from: 'DC 14', to: 'DC 9', tone: 'benefit' });
   assert.equal(crowbar.checks.length, 0);
   crowbar.close();
+  assert.equal(crowbar.checks[0].title, '맨홀 뚜껑 열기');
   assert.equal(crowbar.checks[0].dc, 9);
   assert.equal(crowbar.state.endingData.id, 'TRUE');
 });
@@ -297,6 +470,10 @@ test('extinguisher can be selected for the later crowbar combo and stays in inve
   const game = harness('STAGE_5_VENT'); game.update('ventPhase', 3); game.items(I.CROWBAR, I.EXTINGUISHER);
   game.handlers().handleVentEscape('COMBO', 'extinguisher');
   assert.deepEqual(game.state.activeModalText.illustrations.map((item) => item.id), ['crowbar', 'extinguisher']);
+  assert.equal(game.state.activeModalText.title, '쇠지렛대 + 휴대용 소화기');
+  assert.equal(game.state.activeModalText.tag, '도구 조합');
+  assert.match(game.state.activeModalText.body, /쇠지렛대를 맨홀 틈에 깊숙이 끼웠다/);
+  assert.ok(game.logs.includes('쇠지렛대와 타격 도구를 함께 사용해 맨홀을 열었다.'));
   assert.equal(game.state.endingData, null);
   assert.equal(game.state.turnLimit, 3);
   game.close();

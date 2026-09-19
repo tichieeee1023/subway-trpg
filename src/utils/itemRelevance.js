@@ -11,6 +11,14 @@ const VENT_RELEVANCE = {
   3: ['crowbar', 'wrench', 'tumbler', 'extinguisher'],
 };
 
-export function getRelevantItemIds(stage, ventPhase) {
+const FAKE_STATION_RELEVANCE = {
+  1: ['glasses', 'lantern', 'extinguisher', 'cutter', 'metal_pen', 'acid_vial', 'laptop_bag'],
+  2: ['crowbar', 'wrench', 'tumbler', 'lanyard', 'running_shoes', 'lotto', 'lucky_coin'],
+};
+
+export function getRelevantItemIds(stage, ventPhase, flags = {}) {
+  if (stage === 'STAGE_3_PLATFORM' && flags.fakeStationResistance) {
+    return FAKE_STATION_RELEVANCE[flags.fakeStationPhase] ?? [];
+  }
   return stage === 'STAGE_5_VENT' ? (VENT_RELEVANCE[ventPhase] ?? []) : (STAGE_RELEVANCE[stage] ?? []);
 }

@@ -65,9 +65,10 @@ export function createExplorationHandlers(context, stage) {
           } });
         return;
       }
+      const rewards = (point.rewards ?? []).filter((item) => item.id !== I.POWERBANK.id);
       setPlayer((player) => {
         const updated = applyDamage(player, hpCost, sanCost);
-        const granted = success ? grantItems(updated, point.rewards ?? []) : updated;
+        const granted = success ? grantItems(updated, rewards) : updated;
         return { ...granted, battery: Math.min(100, granted.battery + (success ? point.batteryGain ?? 0 : 0)) };
       });
       if (success) setFlags((flags) => ({ ...flags, ...point.flags,
@@ -86,6 +87,25 @@ export function createExplorationHandlers(context, stage) {
           onClose: () => showEquipment(I.RUBBER_GLOVES, '장비 효과', '산성액이 장갑 손등에 닿았다. 두꺼운 고무층이 맨살에 닿기 전에 액체를 막아 냈다.',
             afterExplore, { modifiers: [{ label: '산성액 접촉 피해', from: 'HP -2', to: 'HP 0', tone: 'damage' }] }) });
       } : afterExplore;
+      if (success && point.immediateItem) {
+        const batterySpent = hasItem(state, 'lantern') ? 0 : stage === 'STAGE_1_CAR6' ? 3 : 5;
+        const batteryFrom = Math.max(0, state.player.battery - batterySpent);
+        const batteryTo = Math.min(100, batteryFrom + (point.batteryGain ?? 0));
+        const itemIllustrations = [
+          { ...point.immediateItem, caption: `즉시 사용 · ${point.immediateItem.name}` },
+          ...(point.rewards ?? []).map((item) => ({ ...item, caption: `획득 · ${item.name}` })),
+        ];
+        setActiveModalText({
+          title: '즉시 사용 · ' + point.immediateItem.name,
+          tag: '충전 완료 · 도구 획득',
+          illustrations: itemIllustrations,
+          rewardItems: [],
+          body: point.body,
+          onClose,
+          modifiers: [{ label: '스마트폰 배터리', from: batteryFrom + '%', to: batteryTo + '%', tone: 'benefit' }],
+        });
+        return;
+      }
       setActiveModalText({ title: point.title, body, image: point.image, tag: success && point.rewards?.length ? '도구 획득' : point.tag, onClose });
     };
     if (point.check && !(point.cardBypass && hasItem(state, 'key_card'))) openDiceCheck(point.title, ...point.check, () => resolve(true), () => resolve(false));
@@ -95,10 +115,11 @@ export function createExplorationHandlers(context, stage) {
     const state = getState();
     if (stage !== 'STAGE_3_PLATFORM' || state.stage !== stage || state.ap > 0 || !canAct(state) || !['EXIT_3', 'BREAKER'].includes(choice)) return;
     if (choice === 'EXIT_3' && !state.flags.clueFakeStation) {
-      setActiveModalText({ title: '가짜 3번 출구', body: '계단이 일렁이며 붉은 식도로 변했다. 역 전체가 입을 벌리고 있다.', image: SCENE_ASSETS.TRAP_EXIT, onClose: () => finishGame(context, 'BAD_2') });
+      setFlags((flags) => ({ ...flags, fakeStationResistance: true, fakeStationPhase: 1, fakeStationEscapeBonus: 0 }));
+      setActiveModalText({ title: '계단을 오르려는 순간', tag: '위험 감지', body: '발을 내딛는 순간, 벽이 먼저 움직였다.\n\n타일처럼 보였던 표면이 젖은 살갗처럼 꿈틀거렸다. 출구라고 생각했던 통로가 안쪽으로 접히며 닫혔다.\n\n그제야 알아차렸다.\n\n나는 출구로 향한 게 아니었다. 이미 무언가의 입 안으로 걸어 들어와 있었다.', image: SCENE_ASSETS.TRAP_EXIT, onClose: () => setActiveModalText({ title: '최후의 반항', tag: '아직 끝나지 않았다', body: '통로가 목구멍처럼 좁아들었다. 몸이 안쪽으로 끌려가기 시작했다.\n\n아직 손은 움직였다. 가방 안에서 지금 쓸 수 있는 물건을 찾았다.', image: SCENE_ASSETS.TRAP_EXIT, onClose: () => {} }) });
     } else if (choice === 'EXIT_3') {
       setActiveModalText({ title: SCENARIO_TEXT.text_77, body: SCENARIO_TEXT.text_78, onClose: () => enter('STAGE_4_MALL') });
     } else enter('STAGE_4_MALL');
   };
-  return { examine, choosePlatformExit };
+  return { examine, choosePlatformExit, enter };
 }
