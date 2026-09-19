@@ -16,6 +16,7 @@ export function createExplorationHandlers(context, stage) {
     if (state.ap > 0) return;
     if (stage === 'STAGE_1_CAR6') {
       context.triggerGlitch(500);
+      context.triggerScreenEffect?.('impact', 560);
       setActiveModalText({ title: '7호차 격벽 붕괴', body: '승객의 허물을 뒤집어쓴 거대한 지네가 문틈을 뚫고 들어온다. 지금 탈출해야 한다.', image: SCENE_ASSETS.MIMIC,
         onClose: () => {
           if (!hasItem(getState(), 'wrench')) { finishGame(context, 'BAD_1'); return; }

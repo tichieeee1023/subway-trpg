@@ -23,7 +23,8 @@ const OPENING_STORAGE_KEY = 'subway-opening-seen-v1';
 
 export default function App() {
   const sfx = useAudioSynth();
-  const game = useGameEngine(sfx);
+  const { settings, updateSettings } = useGameSettings();
+  const game = useGameEngine(sfx, settings);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
   const [showOpening, setShowOpening] = useState(false);
@@ -31,7 +32,7 @@ export default function App() {
     try { return localStorage.getItem(OPENING_STORAGE_KEY) === '1'; } catch { return false; }
   });
   const [utility, setUtility] = useState(null);
-  const { settings, updateSettings } = useGameSettings();
+  const [celebrationActive, setCelebrationActive] = useState(false);
   const { collected, unlockAllEndings } = useEndingCollection(game.endingData);
   const collectionUnlocked = collected.length > 0;
   const collectionComplete = collected.length === 6;
@@ -61,9 +62,17 @@ export default function App() {
     setShowOpening(false);
   };
   const restart = () => { game.handleRestart(); setShowOpening(false); setShowIntro(true); };
+  const completeSecretEnding = () => {
+    setUtility(null);
+    game.handleRestart();
+    setShowOpening(false);
+    setShowIntro(true);
+    setCelebrationActive(true);
+  };
   return (
     <MainLayout isGlitching={game.isGlitching && !settings.disableEffects}>
-      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
+      {game.screenEffect && !settings.disableEffects && <div key={game.screenEffect.key} className={`screen-effect screen-effect--${game.screenEffect.type}`} aria-hidden="true" />}
+      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} celebrationActive={celebrationActive} onCelebrationFinish={() => setCelebrationActive(false)} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
       <GameHeader {...game} soundEnabled={soundEnabled} toggleSound={toggleSound} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onHint={() => setUtility('hint')} />
       {game.stage === 'ENDING' ? (
         <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} />
@@ -76,7 +85,7 @@ export default function App() {
       <DiceModal {...game} disableEffects={settings.disableEffects} skipDiceAnimation={settings.skipDiceAnimation} />
       <StoryDisplay activeModalText={game.activeModalText} onAdvance={game.advanceStory} />
       </>}
-      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} /> : utility === 'credits' ? <CreditsModal onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onCredits={() => setUtility('credits')} onClose={closeUtility} />}
+      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} onSecretComplete={completeSecretEnding} /> : utility === 'credits' ? <CreditsModal onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onCredits={() => setUtility('credits')} onClose={closeUtility} />}
     </MainLayout>
   );
 }

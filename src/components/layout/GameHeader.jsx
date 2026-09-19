@@ -14,7 +14,7 @@ export default function GameHeader({ stage, player, ap, turnLimit, soundEnabled,
           <MapPin size={13} className="text-cyan-400" />
           <span>{
             stage === 'SURVEY' || stage === 'DICE_CONDITION' ? '신도림 방면 막차 진입 중' :
-            stage === 'STAGE_1_CAR6' ? '6호선 6호차 객차 (암전)' :
+            stage === 'STAGE_1_CAR6' ? '2호선 6호차 객차 (암전)' :
             stage === 'STAGE_2_TUNNEL' ? '선로 터널 300m 지점' :
             stage === 'STAGE_3_PLATFORM' ? '신도림 환승역 플랫폼 (?)' :
             stage === 'STAGE_4_MALL' ? '지하 환승 상가 및 개찰구' :

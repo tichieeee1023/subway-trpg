@@ -6,13 +6,14 @@ import { createStageHandlers } from '../state/stageHandlers.js';
 import { executeD20Check } from '../utils/diceEngine.js';
 import { advanceStoryModal } from '../utils/storyFlow.js';
 
-export function useGameEngine(sfx) {
+export function useGameEngine(sfx, settings = {}) {
 const [state, dispatch] = useReducer(gameReducer, undefined, createInitialGameState);
 const stateRef = useRef(state);
 useLayoutEffect(() => { stateRef.current = state; }, [state]);
 const getState = useCallback(() => stateRef.current, []);
 const { player, ap, turnLimit, examinedPoints, flags, diceModal } = state;
 const [isGlitching, setIsGlitching] = useState(false);
+const [screenEffect, setScreenEffect] = useState(null);
 const resolvedStories = useRef(new WeakSet());
 const diceBusy = useRef(false);
 const advanceAfterRoll = useRef(false);
@@ -43,6 +44,12 @@ const triggerGlitch = (duration = 300) => {
 setIsGlitching(true);
 clearTimeout(glitchTimer.current);
 glitchTimer.current = setTimeout(() => setIsGlitching(false), duration);
+};
+const triggerScreenEffect = (type, duration = 700) => {
+ if (settings.disableEffects) return;
+ const key = `${type}-${Date.now()}-${Math.random()}`;
+ setScreenEffect({ type, key });
+ window.setTimeout(() => setScreenEffect((current) => current?.key === key ? null : current), duration);
 };
 
 // ===========================================================================
@@ -134,7 +141,7 @@ const dismissDice = () => {
 };
 
 
-const context = { player, ap, turnLimit, examinedPoints, flags, setStage, setPlayer, setAp, setTurnLimit, setVentPhase, setExaminedPoints, setActiveModalText, setFlags, setLogs, setEndingData, sfx, addLog, triggerGlitch, openDiceCheck, openConditionDice, dispatch, getState };
+const context = { player, ap, turnLimit, examinedPoints, flags, setStage, setPlayer, setAp, setTurnLimit, setVentPhase, setExaminedPoints, setActiveModalText, setFlags, setLogs, setEndingData, sfx, addLog, triggerGlitch, triggerScreenEffect, openDiceCheck, openConditionDice, dispatch, getState };
 const handlers = Object.fromEntries([
   'handleSelectArchetype', 'handleRollCondition', 'examineCar6Point',
   'examineTunnelPoint', 'examinePlatformPoint', 'choosePlatformExit',
@@ -142,8 +149,8 @@ const handlers = Object.fromEntries([
 ].map((name) => [name, (...args) => createStageHandlers(context)[name](...args)]));
 const handleRestart = () => {
   clearTimeout(rollTimer.current); clearTimeout(glitchTimer.current);
-  diceBusy.current = false; advanceAfterRoll.current = false; setIsGlitching(false);
+  diceBusy.current = false; advanceAfterRoll.current = false; setIsGlitching(false); setScreenEffect(null);
   createStageHandlers(context).handleRestart();
 };
-return { ...state, ...handlers, handleRestart, isGlitching, rollD20Check, confirmDiceResult, dismissDice, advanceStory, addLog };
+return { ...state, ...handlers, handleRestart, isGlitching, screenEffect, rollD20Check, confirmDiceResult, dismissDice, advanceStory, addLog };
 }

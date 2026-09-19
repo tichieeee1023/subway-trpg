@@ -2,7 +2,7 @@ import { getEscapeEnding } from '../../data/endingDB.js';
 import { applyDamage, canAct, checkCollapse, finishGame, hasItem } from '../gameRules.js';
 
 export function createStage5Handlers(context) {
-  const { getState, setPlayer, setTurnLimit, setVentPhase, setFlags, setActiveModalText, openDiceCheck, addLog } = context;
+  const { getState, setPlayer, setTurnLimit, setVentPhase, setFlags, setActiveModalText, openDiceCheck, addLog, triggerScreenEffect = () => {} } = context;
   const ready = (phase) => {
     const state = getState();
     return state.stage === 'STAGE_5_VENT' && state.ventPhase === phase && state.turnLimit > 0 && canAct(state);
@@ -13,6 +13,8 @@ export function createStage5Handlers(context) {
   const commit = ({ phase, cost = 1, hp = 0, san = 0, title, body, consume, flags = {} }) => {
     setTurnLimit((turns) => Math.max(0, turns - cost));
     setVentPhase(phase);
+    if (phase === 2) triggerScreenEffect('electric', 480);
+    if (phase === 3) triggerScreenEffect('impact', 420);
     setFlags((previous) => ({ ...previous, ...flags }));
     setPlayer((player) => {
       const updated = applyDamage(player, hp, san);
@@ -64,6 +66,7 @@ export function createStage5Handlers(context) {
     const striker = hasItem(state, 'wrench', 'tumbler', 'extinguisher');
     const escape = () => {
       setTurnLimit((turns) => Math.max(0, turns - 1));
+      triggerScreenEffect('surface-light', 1100);
       finishGame(context, getEscapeEnding(getState().player));
     };
     if (approach === 'COMBO') {

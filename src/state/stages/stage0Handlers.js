@@ -1,7 +1,7 @@
 import { FATIGUE_ROLL_TABLE } from '../../data/conditionDB.js';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 
-export function createStage0Handlers({ setStage, setPlayer, setActiveModalText, sfx, addLog, triggerGlitch, openConditionDice, getState }) {
+export function createStage0Handlers({ setStage, setPlayer, setActiveModalText, sfx, addLog, triggerGlitch, triggerScreenEffect = () => {}, openConditionDice, getState }) {
 // ===========================================================================
 // STAGE 0 : 캐릭터 생성 핸들러
 // ===========================================================================
@@ -40,6 +40,7 @@ body: result.desc,
 tag: result.trait,
 onClose: () => {
 triggerGlitch(600);
+triggerScreenEffect('blackout', 650);
 addLog("00:37:04 : 전동차 급제동 및 전 구역 정전. 비상등 점멸.");
 setActiveModalText({
   title: '00:37 AM — 암전',
