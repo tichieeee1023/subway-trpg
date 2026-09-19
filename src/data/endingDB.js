@@ -34,14 +34,14 @@ export const ENDING_DEFINITIONS = {
     cardId: 'NORMAL',
     title: SCENARIO_TEXT.text_124,
     desc: SCENARIO_TEXT.text_125,
-    hint: '무사히 나왔지만 HP 10 또는 SAN 7 기준에 못 미쳤다면…',
+    hint: '살아서 나왔지만 SAN 8을 지키지 못했거나, HP가 6 아래로 떨어졌다면…',
   },
 
   GOOD: {
     id: 'GOOD',
     type: 'GOOD',
     cardId: 'GOOD',
-    hint: 'HP 10 이상·SAN 7 이상으로 탈출하되, 트루엔딩 기준은 모두 채우지 못했다면…',
+    hint: 'HP 6 이상·SAN 8 이상으로 탈출하되, 트루엔딩 기준은 모두 채우지 못했다면…',
     title: 'GOOD END : 새벽의 생존 보고서',
     desc:
       '도로변에 주저앉자 멀리서 사이렌 소리가 가까워졌다.\n\n잠시 뒤 도착한 119 대원이 피투성이가 된 몸에 은박 보온 담요를 둘러주었다.\n\n손에는 아직 지하에서 챙겨 나온 도구와 증거가 남아 있다.\n누군가는 그곳에서 무슨 일이 있었는지 알아야 한다.\n\n떨리는 손으로 휴대폰 메모장을 열었다.\n그리고 기억나는 모든 것을 하나씩 적기 시작했다.',
@@ -53,7 +53,7 @@ export const ENDING_DEFINITIONS = {
     cardId: 'TRUE',
     title: SCENARIO_TEXT.text_122,
     desc: SCENARIO_TEXT.text_123,
-    hint: '체력 12 이상, 정신력 8 이상으로 지상에 도달했다면…',
+    hint: '체력 14 이상, 정신력 11 이상으로 지상에 도달했다면…',
   },
 };
 
@@ -104,11 +104,11 @@ export const SECRET_STORY = {
 export function getEscapeEnding(player) {
   if (player.hp <= 0 || player.san <= 0) return 'BAD_3';
 
-  if (player.hp >= 12 && player.san >= 8) return 'TRUE';
+  if (player.hp >= 14 && player.san >= 11) return 'TRUE';
 
-  // GOOD: 비교적 안정적인 상태로 탈출
-  if (player.hp >= 10 && player.san >= 7) return 'GOOD';
+  // GOOD: 정신력을 지키고 살아서 탈출했지만 TRUE에는 못 미친 상태
+  if (player.hp >= 6 && player.san >= 8) return 'GOOD';
 
-  // NORMAL: 살아남았지만 심각한 부상 또는 정신적 충격이 남은 상태
+  // NORMAL: 살아남았지만 공포에 압도되었거나 심각한 부상을 입은 상태
   return 'NORMAL';
 }
