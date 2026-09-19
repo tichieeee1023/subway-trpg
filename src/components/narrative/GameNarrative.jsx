@@ -3,19 +3,20 @@ import ActionPanel from './ActionPanel.jsx';
 import SceneOverview from './SceneOverview.jsx';
 import { EXPLORATION_STAGES } from '../../data/explorationDB.js';
 import { getFakeStationActions } from '../../data/fakeStationActions.js';
+import { PHONE_BATTERY_COSTS } from '../../data/batteryDB.js';
 
 const FINAL_PHASES = {
   1: { code: 'OBSTRUCTION', title: '회전 배기팬 돌파', copy: '갱도 끝 사다리 앞을 거대한 날개가 막고 있다. 쇳조각이 튀고, 날개 너머에서는 차가운 빗물 냄새가 스며든다.' },
   2: { code: 'PURSUIT', title: '추격하는 촉수 견제', copy: '팬이 멎는 순간 찌그러진 철문이 벌어진다. 검은 촉수가 바닥을 훑으며 사다리 아래까지 기어오른다.' },
   3: { code: 'ESCAPE', title: '주철 맨홀 개방', copy: '손끝 위로 빗소리가 들린다. 마지막 맨홀만 열면 지상이지만, 뒤에서 금속을 긁는 소리가 더 가까워진다.' },
 };
-
 export default function GameNarrative(game) {
   const { stage, player, ap, turnLimit, ventPhase, flags, examinedPoints } = game;
   const exploration = EXPLORATION_STAGES[stage];
   const finalPhase = FINAL_PHASES[ventPhase];
   const examine = { STAGE_1_CAR6: game.examineCar6Point, STAGE_2_TUNNEL: game.examineTunnelPoint, STAGE_3_PLATFORM: game.examinePlatformPoint, STAGE_4_MALL: game.examineMallPoint }[stage];
   const owns = (...ids) => player.inventory.some((item) => ids.includes(item.id));
+  const batteryHint = owns('lantern') ? '랜턴 사용 · 배터리 소모 없음' : `스마트폰 배터리 -${PHONE_BATTERY_COSTS[stage] ?? 0}%/조사`;
   const hasExtinguisherContents = player.inventory.some((item) => item.id === 'extinguisher' && !item.empty);
   const fakeStationResistance = stage === 'STAGE_3_PLATFORM' && flags.fakeStationResistance;
   const resistanceOptions = fakeStationResistance
@@ -56,7 +57,7 @@ export default function GameNarrative(game) {
           <div className="ap-pips" aria-hidden="true">{[1, 2, 3].map((turn) => <i key={turn} className={turn <= ap ? 'is-available' : ''} />)}</div>
         </div>
       </div>
-      <div className={`exploration-rule${ap === 0 ? ' is-empty' : ''}`}><strong>{fakeStationResistance ? `최후의 반항 · ${flags.fakeStationPhase}/2` : ap === 0 ? '조사 완료' : '조사 규칙'}</strong><span>{fakeStationResistance ? (flags.fakeStationPhase === 1 ? '통로가 닫히기 전에 수축을 늦추고, 빠져나갈 틈을 만들어라.' : '틈이 닫히기 전에 괴물의 입에서 빠져나와라.') : ap === 0 ? '이번 구역에서 사용할 수 있는 3번의 조사를 모두 썼습니다.' : `6곳 중 최대 3곳만 조사할 수 있습니다 · 남은 조사 ${ap}회`}</span></div>
+      <div className={`exploration-rule${ap === 0 ? ' is-empty' : ''}`}><strong>{fakeStationResistance ? `최후의 반항 · ${flags.fakeStationPhase}/2` : ap === 0 ? '조사 완료' : '조사 규칙'}</strong><span>{fakeStationResistance ? (flags.fakeStationPhase === 1 ? '통로가 닫히기 전에 수축을 늦추고, 빠져나갈 틈을 만들어라.' : '틈이 닫히기 전에 괴물의 입에서 빠져나와라.') : ap === 0 ? '이번 구역에서 사용할 수 있는 3번의 조사를 모두 썼습니다.' : `6곳 중 최대 3곳만 조사할 수 있습니다 · 남은 조사 ${ap}회 · ${batteryHint}`}</span></div>
       {stage === 'STAGE_3_PLATFORM' && ap === 0 && !fakeStationResistance ? <p>계단과 환승역 통로가 보인다. 어느 쪽으로 갈까?</p> : !fakeStationResistance ? <div className="grid grid-cols-2 gap-2.5"><ActionPanel points={exploration.points} examinedPoints={examinedPoints} ap={ap} onExamine={examine} color={exploration.color} /></div> : null}
       {stage === 'STAGE_3_PLATFORM' && ap === 0 && !fakeStationResistance && <div className="grid grid-cols-2 gap-2">{action('지상으로 가는 계단', '위쪽에서 불빛이 새어 나온다', () => game.choosePlatformExit('EXIT_3'))}{action('환승역 통로', '안내 표지가 안쪽을 가리킨다', () => game.choosePlatformExit('BREAKER'))}</div>}
       {fakeStationResistance && <div className="resistance-encounter">

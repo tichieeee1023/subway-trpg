@@ -2,6 +2,7 @@ import { EXPLORATION_STAGES } from '../../data/explorationDB.js';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 import { ITEM_DATABASE as I } from '../../data/itemDB.js';
 import { SCENARIO_TEXT } from '../../data/scenarioDB.js';
+import { PHONE_BATTERY_COSTS } from '../../data/batteryDB.js';
 import { applyDamage, canAct, checkCollapse, finishGame, grantItems, hasItem } from '../gameRules.js';
 
 export function createExplorationHandlers(context, stage) {
@@ -35,26 +36,15 @@ export function createExplorationHandlers(context, stage) {
       setActiveModalText({ title: SCENARIO_TEXT.text_98, body: hasItem(state, 'key_card') ? SCENARIO_TEXT.text_99 : '설비구역 안쪽의 수동 빗장을 열고 방화문을 통과했다. 등 뒤에서 촉수와 마네킹들이 쏟아져 들어온다. 문을 단단히 걸어 잠갔다.\n\n위쪽에서 차가운 밤비 냄새가 쏟아져 내린다. 마지막이다.', onClose: () => enter('STAGE_5_VENT') });
     }
   };
+  const getBatteryCost = (currentStage) => PHONE_BATTERY_COSTS[currentStage] ?? 0;
   const examine = (pointId) => {
     const state = getState();
     const point = EXPLORATION_STAGES[stage].points.find((entry) => entry.id === pointId);
     if (!point || state.stage !== stage || !canAct(state) || state.ap <= 0 || state.examinedPoints.includes(pointId)) return;
     sfx.playClick(); setAp(state.ap - 1); setExaminedPoints((previous) => [...previous, pointId]);
-    const batterySpent = hasItem(state, 'lantern') ? 0 : stage === 'STAGE_1_CAR6' ? 3 : 5;
+    const batterySpent = hasItem(state, 'lantern') ? 0 : getBatteryCost(stage);
     const batteryAfterSpend = Math.max(0, state.player.battery - batterySpent);
     setPlayer((player) => ({ ...player, battery: hasItem(state, 'lantern') ? player.battery : batteryAfterSpend }));
-    const isBlackoutDeathRisk = stage === 'STAGE_4_MALL' && state.flags.anomalyCount >= 3;
-    if (batterySpent && batteryAfterSpend === 0 && !point.immediateItem && isBlackoutDeathRisk) {
-      sfx.playDanger();
-      setActiveModalText({
-        title: '화면이 꺼졌다',
-        tag: '배터리 0%',
-        variant: 'blackout',
-        body: '스마트폰 화면이 꺼졌다.\n\n아무것도 보이지 않는다.\n\n잠시 뒤, 선로 너머에서 젖은 무언가가 바닥을 긁는 소리가 들린다.\n\n소리는 멈추지 않고, 점점 가까워진다.',
-        onClose: () => finishGame(context, 'BAD_4'),
-      });
-      return;
-    }
     const resolve = (success) => {
       const latest = getState();
       const gloves = hasItem(latest, 'rubber_gloves');
@@ -102,7 +92,7 @@ export function createExplorationHandlers(context, stage) {
             afterExplore, { modifiers: [{ label: '산성액 접촉 피해', from: 'HP -2', to: 'HP 0', tone: 'damage' }] }) });
       } : afterExplore;
       if (success && point.immediateItem) {
-        const batterySpent = hasItem(state, 'lantern') ? 0 : stage === 'STAGE_1_CAR6' ? 3 : 5;
+        const batterySpent = hasItem(state, 'lantern') ? 0 : getBatteryCost(stage);
         const batteryFrom = Math.max(0, state.player.battery - batterySpent);
         const batteryTo = Math.min(100, batteryFrom + (point.batteryGain ?? 0));
         const itemIllustrations = [
