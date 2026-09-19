@@ -13,10 +13,20 @@ import { PUBLIC_ASSET_FILES } from '../src/data/assetDB.js';
 import { ITEM_ASSET_FILES, ITEM_DATABASE as I, ITEM_DB } from '../src/data/itemDB.js';
 import { EXPLORATION_STAGES } from '../src/data/explorationDB.js';
 import { ENDING_DEFINITIONS, getEscapeEnding } from '../src/data/endingDB.js';
+import { getEndingJobEpilogue } from '../src/data/endingJobEpilogues.js';
 import { getFakeStationActions } from '../src/data/fakeStationActions.js';
 import { advanceStoryModal } from '../src/utils/storyFlow.js';
 import { applyDamage, grantItems } from '../src/state/gameRules.js';
 import { parseEndingCollection } from '../src/utils/endingCollection.js';
+
+test('every ending has a distinct epilogue for every archetype', () => {
+  const epilogues = Object.keys(ENDING_DEFINITIONS).flatMap((endingId) =>
+    ARCHETYPES.map(({ id }) => getEndingJobEpilogue(id, endingId))
+  );
+  assert.equal(epilogues.length, 35);
+  assert.equal(epilogues.every(Boolean), true);
+  assert.equal(new Set(epilogues).size, epilogues.length);
+});
 
 function harness(stage = 'SURVEY') {
   let state = { ...createInitialGameState(), stage };
@@ -72,7 +82,7 @@ test('condition boundaries respect SAN 15 and correct HP maxima; female profile 
 });
 
 test('all linked portraits/scenes/cards and item graphics resolve to existing WebP files', () => {
-  assert.equal(Object.keys(PUBLIC_ASSET_FILES).length, 29); assert.equal(Object.keys(I).length, 26);
+  assert.equal(Object.keys(PUBLIC_ASSET_FILES).length, 30); assert.equal(Object.keys(I).length, 26);
   for (const path of Object.keys(PUBLIC_ASSET_FILES)) {
     assert.match(path, /\.webp$/); assert.ok(existsSync(fileURLToPath(new URL(`../${path}`, import.meta.url))), path);
   }
@@ -152,6 +162,25 @@ test('powerbank immediately charges the phone, while dissolved shoes remain an i
   clue.handlers().examineCar6Point('p6_floor');
   assert.equal(clue.state.flags.knows_dissolution, true);
   assert.equal(clue.state.player.inventory.some((item) => item.id === 'clue_shoes'), false);
+});
+
+test('a depleted phone battery shows the blackout encounter before ending the run', () => {
+  const early = harness('STAGE_2_TUNNEL');
+  early.update('player', (player) => ({ ...player, battery: 5 }));
+  early.handlers().examineTunnelPoint('t2_phone');
+  assert.equal(early.state.player.battery, 0);
+  assert.notEqual(early.state.activeModalText?.variant, 'blackout');
+
+  const game = harness('STAGE_4_MALL');
+  game.update('player', (player) => ({ ...player, battery: 5 }));
+  game.update('flags', (flags) => ({ ...flags, anomalyCount: 3 }));
+  game.handlers().examineMallPoint('c1_store');
+  assert.equal(game.state.player.battery, 0);
+  assert.equal(game.state.activeModalText.title, '화면이 꺼졌다');
+  assert.equal(game.state.activeModalText.variant, 'blackout');
+  assert.equal(game.state.endingData, null);
+  game.drain();
+  assert.equal(game.state.endingData.id, 'BAD_4');
 });
 
 test('false exit opens a two-step resistance sequence and successful items affect later inventory', () => {

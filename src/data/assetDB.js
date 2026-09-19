@@ -27,6 +27,7 @@ export const ENDING_CARDS = {
   BAD_1: asset('cards/card_bad_end1.webp'),
   BAD_2: asset('cards/card_bad_end2.webp'),
   BAD_3: asset('cards/card_bad_end3.webp'),
+  BAD_4: asset('cards/card_bad_end4.webp'),
   NORMAL: asset('cards/card_normal_end.webp'),
   GOOD: asset('cards/card_good_end.webp'),
   TRUE: asset('cards/card_true_end.webp'),

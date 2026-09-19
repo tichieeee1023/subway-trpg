@@ -40,7 +40,21 @@ export function createExplorationHandlers(context, stage) {
     const point = EXPLORATION_STAGES[stage].points.find((entry) => entry.id === pointId);
     if (!point || state.stage !== stage || !canAct(state) || state.ap <= 0 || state.examinedPoints.includes(pointId)) return;
     sfx.playClick(); setAp(state.ap - 1); setExaminedPoints((previous) => [...previous, pointId]);
-    setPlayer((player) => ({ ...player, battery: hasItem(state, 'lantern') ? player.battery : Math.max(0, player.battery - (stage === 'STAGE_1_CAR6' ? 3 : 5)) }));
+    const batterySpent = hasItem(state, 'lantern') ? 0 : stage === 'STAGE_1_CAR6' ? 3 : 5;
+    const batteryAfterSpend = Math.max(0, state.player.battery - batterySpent);
+    setPlayer((player) => ({ ...player, battery: hasItem(state, 'lantern') ? player.battery : batteryAfterSpend }));
+    const isBlackoutDeathRisk = stage === 'STAGE_4_MALL' && state.flags.anomalyCount >= 3;
+    if (batterySpent && batteryAfterSpend === 0 && !point.immediateItem && isBlackoutDeathRisk) {
+      sfx.playDanger();
+      setActiveModalText({
+        title: '화면이 꺼졌다',
+        tag: '배터리 0%',
+        variant: 'blackout',
+        body: '스마트폰 화면이 꺼졌다.\n\n아무것도 보이지 않는다.\n\n잠시 뒤, 선로 너머에서 젖은 무언가가 바닥을 긁는 소리가 들린다.\n\n소리는 멈추지 않고, 점점 가까워진다.',
+        onClose: () => finishGame(context, 'BAD_4'),
+      });
+      return;
+    }
     const resolve = (success) => {
       const latest = getState();
       const gloves = hasItem(latest, 'rubber_gloves');

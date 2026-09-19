@@ -17,7 +17,7 @@ export default function StoryDisplay({ activeModalText, onAdvance }) {
   return (
 activeModalText && (
     <ModalLayer>
-      <div data-testid="story-backdrop" onClick={(event) => { if (event.target === event.currentTarget) advance(); }} className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-40">
+      <div data-testid="story-backdrop" onClick={(event) => { if (event.target === event.currentTarget) advance(); }} className={`fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-40${activeModalText.variant === 'blackout' ? ' story-blackout' : ''}`}>
         <div role="dialog" aria-modal="true" aria-labelledby="story-title" className="story-dialog w-full overflow-y-auto">
           {activeModalText.image && <img src={activeModalText.image.src} alt={activeModalText.image.alt} className="story-dialog__scene" />}
           <div className="story-dialog__heading">

@@ -1,10 +1,11 @@
 import { ENDING_DEFINITIONS } from '../data/endingDB.js';
+import { getEndingJobEpilogue } from '../data/endingJobEpilogues.js';
 
 export const hasItem = (state, ...ids) => state.player.inventory.some((item) => ids.includes(item.id));
 export const canAct = (state) => !state.activeModalText && !state.diceModal.isOpen && state.stage !== 'ENDING' && state.player.hp > 0 && state.player.san > 0;
 export function finishGame(context, id, desc) {
   context.setActiveModalText(null);
-  context.setEndingData({ ...ENDING_DEFINITIONS[id], ...(desc ? { desc } : {}) });
+  context.setEndingData({ ...ENDING_DEFINITIONS[id], ...(desc ? { desc } : {}), jobEpilogue: getEndingJobEpilogue(context.player.profileId, id) });
   context.setStage('ENDING');
 }
 export function checkCollapse(context) {

@@ -269,6 +269,11 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 .ending-prose { border-top: 1px solid #65767b66; padding-top: 24px; }
 .ending-prose p { font: 18px/1.9 var(--story-font); color: #dce1db; white-space: pre-line; word-break: keep-all; }
 .ending-prose p + p { margin-top: 24px; }
+.ending-page { transition: opacity 220ms ease, transform 220ms ease; }
+.ending-page.is-changing { opacity: 0; transform: translateY(-10px); }
+.story-blackout { background: #000; backdrop-filter: none; }
+.story-blackout .story-dialog { background: #000; border-color: #252525; box-shadow: none; }
+.story-blackout .story-dialog__heading, .story-blackout .story-dialog__body { color: #b7b7b7; }
 .ending-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
 .ending-actions button { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 20px; font-size: 16px; }
 .ending-credits-button, .intro-credits-button { border-color: #59676c; background: #12191d; color: #b8c4c2; font: 13px var(--story-font); letter-spacing: .08em; }

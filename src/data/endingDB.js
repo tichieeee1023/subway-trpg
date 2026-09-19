@@ -28,6 +28,15 @@ export const ENDING_DEFINITIONS = {
     hint: '탈출 전까지 체력과 정신력이 바닥나지 않도록 지켜냈다면…',
   },
 
+  BAD_4: {
+    id: 'BAD_4',
+    type: 'BAD',
+    cardId: 'BAD_4',
+    title: 'BAD END 4 : 꺼진 화면 너머',
+    desc: '스마트폰 화면이 마지막으로 깜빡인 뒤 완전히 꺼졌다. 손전등도 지도도 사라진 어둠 속에서, 젖은 바닥을 긁는 소리만이 조금씩 가까워졌다.',
+    hint: '환승 상가까지 이상 현상을 깊이 추적했다면, 랜턴 없이 스마트폰 배터리를 0%까지 쓰지 마세요.',
+  },
+
   NORMAL: {
     id: 'NORMAL',
     type: 'NORMAL',
