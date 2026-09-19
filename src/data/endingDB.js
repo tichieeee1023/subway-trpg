@@ -7,6 +7,7 @@ export const ENDING_DEFINITIONS = {
     cardId: 'BAD_1',
     title: SCENARIO_TEXT.text_25,
     desc: SCENARIO_TEXT.text_26,
+    hint: '7호차의 문이 무너질 때, 다시 붙잡을 도구가 곁에 있었다면…',
   },
 
   BAD_2: {
@@ -15,6 +16,7 @@ export const ENDING_DEFINITIONS = {
     cardId: 'BAD_2',
     title: SCENARIO_TEXT.text_75,
     desc: SCENARIO_TEXT.text_76,
+    hint: '가짜 역의 방송을 믿기 전에, 주변의 이상한 흔적을 살폈다면…',
   },
 
   BAD_3: {
@@ -23,6 +25,7 @@ export const ENDING_DEFINITIONS = {
     cardId: 'BAD_3',
     title: SCENARIO_TEXT.text_129,
     desc: SCENARIO_TEXT.text_130,
+    hint: '마지막 구간에서 남은 체력과 정신력을 지켜냈다면…',
   },
 
   NORMAL: {
@@ -31,12 +34,14 @@ export const ENDING_DEFINITIONS = {
     cardId: 'NORMAL',
     title: SCENARIO_TEXT.text_124,
     desc: SCENARIO_TEXT.text_125,
+    hint: '살아남았지만 상처가 깊었다. 더 많은 준비를 하고 탈출했다면…',
   },
 
   GOOD: {
     id: 'GOOD',
     type: 'GOOD',
     cardId: 'GOOD',
+    hint: '핵심 장비를 챙겨 탈출 중 한두 번의 실수를 만회했다면…',
     title: 'GOOD END : 새벽의 생존 보고서',
     desc:
       '도로변에 주저앉자 멀리서 사이렌 소리가 가까워졌다.\n\n잠시 뒤 도착한 119 대원이 피투성이가 된 몸에 은박 보온 담요를 둘러주었다.\n\n손에는 아직 지하에서 챙겨 나온 도구와 증거가 남아 있다.\n누군가는 그곳에서 무슨 일이 있었는지 알아야 한다.\n\n떨리는 손으로 휴대폰 메모장을 열었다.\n그리고 기억나는 모든 것을 하나씩 적기 시작했다.',
@@ -48,6 +53,7 @@ export const ENDING_DEFINITIONS = {
     cardId: 'TRUE',
     title: SCENARIO_TEXT.text_122,
     desc: SCENARIO_TEXT.text_123,
+    hint: '토치와 빠루, 산소마스크를 지키고 모든 단계를 완벽히 넘었다면…',
   },
 };
 

@@ -539,6 +539,21 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .collection-grid h3 { min-width: 0; font-size: 1rem; margin-top: 12px; word-break: keep-all; overflow-wrap: break-word; }
 .locked-card { aspect-ratio: 3 / 4; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #687f8c; }
 .locked-card > span { font-size: 48px; }
+.collection-hint-guide { display: block; margin-top: 6px; color: #7f96a3; font-size: .85rem; }
+.locked-card { position: relative; overflow: hidden; cursor: help; border: 1px solid #354550; background: linear-gradient(145deg, #111d27, #0b1219); }
+.locked-card:focus-visible { outline: 2px solid #83c4d3; outline-offset: 2px; }
+.locked-card-default, .ending-hint { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px; text-align: center; transition: opacity 180ms ease, transform 180ms ease; }
+.locked-card-default { opacity: 1; transform: translateY(0); }
+.locked-card-default > span { font-size: 48px; line-height: 1; color: #687f8c; }
+.locked-card-default p { margin: 10px 0 5px; color: #7b909b; }
+.locked-card-default small { color: #536c78; font-size: .66rem; letter-spacing: .18em; }
+.ending-hint { opacity: 0; transform: translateY(10px); background: radial-gradient(ellipse at 50% 0, #34505a55, transparent 65%), #0d151c; color: #aec4ce; }
+.ending-hint > span { margin-bottom: 12px; color: #6fa8b8; font-size: .63rem; letter-spacing: .16em; }
+.ending-hint p { max-width: 220px; margin: 0; font-size: .84rem; line-height: 1.65; word-break: keep-all; }
+.locked-card:hover .locked-card-default, .locked-card:focus .locked-card-default { opacity: 0; transform: translateY(-8px); }
+.locked-card:hover .ending-hint, .locked-card:focus .ending-hint { opacity: 1; transform: translateY(0); }
+.locked-card.is-hint-open .locked-card-default { opacity: 0; transform: translateY(-8px); }
+.locked-card.is-hint-open .ending-hint { opacity: 1; transform: translateY(0); }
 .secret-report > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: 24px; }
 .secret-report > h3 { min-width: 0; color: #e6b966; margin-bottom: 16px; word-break: keep-all; overflow-wrap: break-word; }
 .secret-report > p { white-space: pre-wrap; margin-top: 16px; }
