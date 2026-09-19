@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ModalLayer from './ModalLayer.jsx';
 
 const STAGE_HINTS = {
@@ -11,8 +11,9 @@ const STAGE_HINTS = {
   STAGE_5_VENT: '세 번의 숨이 끝나기 전, 길을 막는 것들을 차례로 지나가야 합니다.',
 };
 
-export default function UtilityModal({ kind, stage, settings, updateSettings, onCredits, onClose }) {
+export default function UtilityModal({ kind, stage, settings, updateSettings, onCredits, onClose, canReplay = false, onReplay, onHome }) {
   const ref = useRef(null);
+  const [confirmReplay, setConfirmReplay] = useState(false);
   useEffect(() => {
     const previousFocus = document.activeElement;
     ref.current.querySelector('button')?.focus();
@@ -54,6 +55,10 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
           </div>}
           {kind === 'help' && <button className="utility-credits" onClick={onCredits}>CREDITS</button>}
+          {kind === 'settings' && canReplay && <div className="utility-navigation-actions">
+            {confirmReplay ? <div className="utility-replay-confirm" role="alert"><p>현재 회차의 진행 상황은 초기화됩니다. 수집한 엔딩 기록은 유지됩니다.</p><div><button className="utility-replay-cancel" onClick={() => setConfirmReplay(false)}>취소</button><button className="utility-replay-accept" onClick={onReplay}>처음부터 시작</button></div></div> : <button className="utility-replay" onClick={() => setConfirmReplay(true)}>처음부터 다시 플레이</button>}
+            <button className="utility-home" onClick={onHome}>홈으로 가기</button>
+          </div>}
           <button className="utility-done" onClick={onClose}>확인</button>
         </section>
       </div>

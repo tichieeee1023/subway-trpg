@@ -486,6 +486,17 @@ html[data-effects="off"] *, html[data-effects="off"] *::before, html[data-effect
 .setting-checkbox input { width: 22px; height: 22px; accent-color: #e6b966; flex-shrink: 0; }
 .utility-dialog p { font-size: 1rem; line-height: 1.8; color: #bac8ce; }
 .utility-dialog .setting-note { font-size: .875rem; margin-top: 24px; }
+.utility-navigation-actions { display: grid; gap: 8px; margin-top: 24px; }
+.utility-replay, .utility-home, .utility-replay-confirm button { width: 100%; min-height: 48px; padding: 10px 14px; font-family: var(--story-font); font-size: .95rem; }
+.utility-replay { border: 1px solid #9d7637; background: #2b2113; color: #f2cc78; }
+.utility-replay:hover { background: #3b2b15; }
+.utility-home { border: 1px solid #536874; background: #192831; color: #d5e0df; }
+.utility-home:hover { background: #23373c; }
+.utility-replay-confirm { padding: 12px; border: 1px solid #9d7637; background: #17150f; }
+.utility-replay-confirm p { margin: 0 0 12px; color: #e5d5b0; font-size: .875rem; line-height: 1.55; }
+.utility-replay-confirm > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.utility-replay-confirm .utility-replay-cancel { border: 1px solid #536874; background: #192831; color: #d5e0df; }
+.utility-replay-confirm .utility-replay-accept { border: 1px solid #9d7637; background: #2b2113; color: #f2cc78; }
 .utility-done { width: 100%; background: #23373c; padding: 12px; margin-top: 28px; }
 .utility-done:hover:not(:disabled), .setting-options button:hover:not(:disabled) { background: #2c4850; color: #fff3d0; }
 .help-content h3 { font-size: 1.125rem; margin: 24px 0 8px; color: #e6b966; }
@@ -647,9 +658,9 @@ button:disabled { cursor: not-allowed; }
   .completion-thanks h2 { font-size: clamp(20px, 6.5vw, 27px); }
   .completion-thanks h3 { font-size: 14px; }
   .completion-copy { font-size: .78rem; line-height: 1.55; }
-  .completion-footer { gap: 8px; padding-top: 8px; }
+  .completion-footer { flex-direction: column; align-items: stretch; gap: 8px; padding-top: 8px; }
   .completion-final-line { font-size: .54rem; letter-spacing: .07em; }
-  .completion-signoff { gap: 4px; }
-  .completion-signoff span { font-size: .57rem; letter-spacing: .09em; }
-  .completion-signoff strong { font-size: .82rem; }
+  .completion-signoff { width: 100%; flex-wrap: nowrap; gap: 8px; }
+  .completion-signoff span { white-space: nowrap; font-size: .57rem; letter-spacing: .09em; }
+  .completion-signoff strong { flex: 0 0 auto; white-space: nowrap; font-size: .82rem; }
 }

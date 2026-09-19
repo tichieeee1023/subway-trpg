@@ -2,7 +2,7 @@ import { SCENE_ASSETS } from '../../data/assetDB.js';
 import { CircleHelp, Settings2 } from 'lucide-react';
 import CompletionCelebration from './CompletionCelebration.jsx';
 
-export default function IntroScreen({ onStart, onSettings, onHelp, onCollection, collectionUnlocked, collectionComplete, disableEffects, celebrationActive, onCelebrationFinish }) {
+export default function IntroScreen({ onStart, onContinue, hasActiveRun, onSettings, onHelp, onCollection, collectionUnlocked, collectionComplete, disableEffects, celebrationActive, onCelebrationFinish }) {
   return (
     <main className="intro-screen">
       <img className="intro-image" src={SCENE_ASSETS.INTRO.src} alt={SCENE_ASSETS.INTRO.alt} />
@@ -14,7 +14,7 @@ export default function IntroScreen({ onStart, onSettings, onHelp, onCollection,
         <h2>심야 지하철: 사라진 다음역</h2>
         <p>막차에 올랐다.<br />다음 역은, 당신이 알던 곳이 아니다.</p>
         <div className="intro-actions">
-          <button onClick={onStart} className="bg-amber-300 text-neutral-950 font-bold cursor-pointer">게임 시작</button>
+          <button onClick={hasActiveRun ? onContinue : onStart} className="bg-amber-300 text-neutral-950 font-bold cursor-pointer">{hasActiveRun ? '이어하기' : '게임 시작'}</button>
           <button onClick={onSettings} className="bg-neutral-900 text-neutral-100 cursor-pointer"><Settings2 size={17} strokeWidth={1.8} aria-hidden="true" /><span>설정</span></button>
           <button onClick={onHelp} className="bg-neutral-900 text-neutral-100 cursor-pointer"><CircleHelp size={17} strokeWidth={1.8} aria-hidden="true" /><span>도움말</span></button>
           <button onClick={onCollection} disabled={!collectionUnlocked} title={collectionUnlocked ? '엔딩 도감' : '엔딩을 하나 이상 보면 열립니다'} className={`bg-neutral-900 text-neutral-100 cursor-pointer${collectionComplete ? ' collection-button-complete' : ''}`}>{collectionComplete ? '엔딩 도감' : collectionUnlocked ? '엔딩 도감' : '엔딩 도감 · 잠김'}</button>

@@ -27,6 +27,7 @@ export default function App() {
   const game = useGameEngine(sfx, settings);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
+  const [hasActiveRun, setHasActiveRun] = useState(false);
   const [showOpening, setShowOpening] = useState(false);
   const [hasSeenOpening, setHasSeenOpening] = useState(() => {
     try { return localStorage.getItem(OPENING_STORAGE_KEY) === '1'; } catch { return false; }
@@ -61,10 +62,13 @@ export default function App() {
     sfx.playClick();
     setShowOpening(false);
   };
-  const restart = () => { game.handleRestart(); setShowOpening(false); setShowIntro(true); };
+  const restart = () => { game.handleRestart(); setHasActiveRun(false); setShowOpening(false); setShowIntro(true); };
+  const replayFromSettings = () => { game.handleRestart(); setHasActiveRun(false); setUtility(null); setShowOpening(false); setShowIntro(true); };
+  const returnHome = () => { setUtility(null); setShowOpening(false); setShowIntro(true); };
   const completeSecretEnding = () => {
     setUtility(null);
     game.handleRestart();
+    setHasActiveRun(false);
     setShowOpening(false);
     setShowIntro(true);
     setCelebrationActive(true);
@@ -72,7 +76,7 @@ export default function App() {
   return (
     <MainLayout isGlitching={game.isGlitching && !settings.disableEffects}>
       {game.screenEffect && !settings.disableEffects && <div key={game.screenEffect.key} className={`screen-effect screen-effect--${game.screenEffect.type}`} aria-hidden="true" />}
-      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} celebrationActive={celebrationActive} onCelebrationFinish={() => setCelebrationActive(false)} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
+      {showIntro ? <IntroScreen onStart={() => { sfx.playClick(); setHasActiveRun(true); setShowIntro(false); setShowOpening(!hasSeenOpening); }} onContinue={() => { sfx.playClick(); setShowOpening(false); setShowIntro(false); }} hasActiveRun={hasActiveRun} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onCollection={openCollection} collectionUnlocked={collectionUnlocked} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} celebrationActive={celebrationActive} onCelebrationFinish={() => setCelebrationActive(false)} /> : showOpening ? <OpeningSequence onComplete={completeOpening} onSkip={completeOpening} /> : <>
       <GameHeader {...game} soundEnabled={soundEnabled} toggleSound={toggleSound} onSettings={() => setUtility('settings')} onHelp={() => setUtility('help')} onHint={() => setUtility('hint')} />
       {game.stage === 'ENDING' ? (
         <EndingModal {...game} handleRestart={restart} onCollection={openCollection} collectedCount={collected.length} collectionComplete={collectionComplete} disableEffects={settings.disableEffects} />
@@ -85,7 +89,7 @@ export default function App() {
       <DiceModal {...game} disableEffects={settings.disableEffects} skipDiceAnimation={settings.skipDiceAnimation} />
       <StoryDisplay activeModalText={game.activeModalText} onAdvance={game.advanceStory} />
       </>}
-      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} onSecretComplete={completeSecretEnding} /> : utility === 'credits' ? <CreditsModal onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onCredits={() => setUtility('credits')} onClose={closeUtility} />}
+      {utility === 'collection' ? collectionUnlocked && <CollectionModal collected={collected} onClose={closeUtility} onSecretComplete={completeSecretEnding} /> : utility === 'credits' ? <CreditsModal onClose={closeUtility} /> : utility && <UtilityModal kind={utility} stage={game.stage} settings={settings} updateSettings={updateSettings} onCredits={() => setUtility('credits')} onClose={closeUtility} canReplay={hasActiveRun && game.stage !== 'ENDING'} onReplay={replayFromSettings} onHome={returnHome} />}
     </MainLayout>
   );
 }
