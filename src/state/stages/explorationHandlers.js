@@ -6,6 +6,7 @@ import { applyDamage, canAct, checkCollapse, finishGame, grantItems, hasItem } f
 export function createExplorationHandlers(context, stage) {
   const { setPlayer, setAp, setExaminedPoints, setFlags, setActiveModalText, setStage, setTurnLimit, setVentPhase, sfx, addLog, openDiceCheck, getState } = context;
   const enter = (nextStage) => {
+    sfx.playStageTransition();
     setStage(nextStage); setAp(3); setExaminedPoints([]);
     if (nextStage === 'STAGE_5_VENT') { setTurnLimit(3); setVentPhase(1); }
     addLog(`다음 구역 진입: ${nextStage === 'STAGE_5_VENT' ? '수직 환기탑 · 3단계 결전' : EXPLORATION_STAGES[nextStage].title}`);
@@ -39,6 +40,7 @@ export function createExplorationHandlers(context, stage) {
       const gloves = hasItem(latest, 'rubber_gloves');
       const hpCost = success ? (point.acidContact && !gloves ? 2 : 0) : (point.electrical && gloves ? 2 : point.failHp ?? 0);
       const sanCost = success ? point.sanCost ?? 0 : point.failSan ?? 0;
+      if (success && point.rewards?.length) sfx.playAction();
       setPlayer((player) => {
         const updated = applyDamage(player, hpCost, sanCost);
         const granted = success ? grantItems(updated, point.rewards ?? []) : updated;

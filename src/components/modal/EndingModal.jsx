@@ -39,7 +39,7 @@ export default function EndingModal({ stage, endingData, handleRestart, onCollec
           </div>
           <details className="ending-credits">
             <summary>ENDING CREDITS</summary>
-            <p>00:37 AM — 심야 지하철 생존기</p>
+            <p>00:37 AM — 심야 지하철: 사라진 다음역</p>
             <dl><dt>게임 구현</dt><dd>React · Vite · Canvas</dd><dt>판정 시스템</dt><dd>D20 Survival TRPG</dd><dt>이야기 서체</dt><dd>둥근모꼴+Fixedsys · 길형진 / CACTUS</dd></dl>
             <p className="credits-thanks">마지막 역까지 함께해 주셔서 감사합니다.</p>
           </details>

@@ -17,7 +17,7 @@ export default function GameNarrative(game) {
   const owns = (...ids) => player.inventory.some((item) => ids.includes(item.id));
   const action = (label, hint, onClick, enabled = true) => <button key={label} disabled={!enabled} onClick={onClick} className="choice-card choice-card--route p-3 bg-[#141926] border border-cyan-500/40 text-left disabled:opacity-40"><span className="text-xs font-bold">{label}</span><span className="block text-[10px] text-cyan-300 mt-1">{enabled ? hint : '필요 도구 미보유'}</span></button>;
   return <main className="game-narrative bg-[#0a0c12] p-6 flex flex-col overflow-y-auto">
-    <SceneOverview stage={stage} />
+    <SceneOverview key={stage} stage={stage} />
     <SurveyView stage={stage} handleSelectArchetype={game.handleSelectArchetype} />
     {stage === 'DICE_CONDITION' && <section className="condition-panel my-auto mx-auto" aria-labelledby="condition-title">
       <div className="condition-panel__signal"><span>SHIFT STATUS // 00:00</span><i aria-hidden="true" /></div>

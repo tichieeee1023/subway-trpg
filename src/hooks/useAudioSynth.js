@@ -30,7 +30,7 @@ class AquariumAudioEngine {
     }
   }
 
-  // 1) 수중 물방울 퐁- 탭 사운드 (UI 클릭 및 카드 선택)
+  // 1) 낡은 전동차 조작 패널의 낮고 마른 키 입력음
   playClick() {
     if (!this.enabled) return;
     this.init();
@@ -40,13 +40,12 @@ class AquariumAudioEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    // 아래에서 위로 빠르게 치솟는 물방울 특유의 상향 피치 스윕
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(420, now);
-    osc.frequency.exponentialRampToValueAtTime(1150, now + 0.06);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(360, now);
+    osc.frequency.exponentialRampToValueAtTime(210, now + 0.045);
 
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    gain.gain.setValueAtTime(0.075, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
@@ -55,15 +54,14 @@ class AquariumAudioEngine {
     osc.stop(now + 0.08);
   }
 
-  // 2) 아이템 획득 및 장비 조작 (수중 파동 및 첨벙 마찰음)
+  // 2) 아이템 획득 및 장비 조작 (금속 부품을 뒤지는 짧은 마찰음)
   playAction() {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
-    // 수중 화이트 노이즈 버퍼
-    const dur = 0.28;
+    const dur = 0.2;
     const bufferSize = Math.floor(this.ctx.sampleRate * dur);
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -74,15 +72,15 @@ class AquariumAudioEngine {
     const noise = this.ctx.createBufferSource();
     noise.buffer = buffer;
 
-    // 대역통과 필터로 수중 거품이 이는 스플래시 대역 연출
+    // 대역통과 필터로 녹슨 장비를 스치는 건조한 질감 연출
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(900, now);
-    filter.frequency.exponentialRampToValueAtTime(320, now + dur);
-    filter.Q.value = 3.5;
+    filter.frequency.setValueAtTime(1500, now);
+    filter.frequency.exponentialRampToValueAtTime(520, now + dur);
+    filter.Q.value = 1.8;
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.16, now);
+    gain.gain.setValueAtTime(0.11, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
     noise.connect(filter);
@@ -92,74 +90,84 @@ class AquariumAudioEngine {
     noise.start(now);
   }
 
-  // 3) 아쿠아틱 다이스 롤 (연속 수포 방출 / 카운팅 버블 래칫)
+  // 3) D20 판정 (속도가 붙으며 가라앉는 기계식 래칫)
   playDiceRoll() {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
-    const count = 10;
+    const count = 12;
 
     for (let i = 0; i < count; i++) {
-      const delay = i * 0.05 + Math.pow(i, 1.35) * 0.003;
+      const delay = i * 0.055 + Math.pow(i, 1.3) * 0.003;
       const now = this.ctx.currentTime + delay;
 
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'sine';
-      // 수포 크기 편차를 반영한 불규칙 주파수 점프
-      const startFreq = 480 + Math.random() * 260;
+      osc.type = 'triangle';
+      const startFreq = 300 + Math.random() * 130;
       osc.frequency.setValueAtTime(startFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.8, now + 0.035);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 0.72, now + 0.045);
 
-      gain.gain.setValueAtTime(0.07, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+      gain.gain.setValueAtTime(0.055, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
       osc.connect(gain);
       gain.connect(this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.04);
+      osc.stop(now + 0.055);
     }
   }
 
-  // 4) 판정 성공 (영롱한 수중 아르페지오 & 오션 딜레이 잔향)
+  // 4) 판정 성공 (과하게 들뜨지 않는 짧은 안도 신호)
   playSuccess() {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (투명한 펜타토닉)
-
-    // 간단한 피드백 에코 딜레이 생성 (수중 메아리 구현)
-    const delay = this.ctx.createDelay();
-    delay.delayTime.value = 0.14;
-    const feedback = this.ctx.createGain();
-    feedback.gain.value = 0.35;
-    delay.connect(feedback);
-    feedback.connect(delay);
-    delay.connect(this.masterGain);
+    const notes = [392, 311.13]; // G4 → Eb4: 작고 어두운 하행 2음
 
     notes.forEach((freq, idx) => {
-      const now = this.ctx.currentTime + idx * 0.08;
+      const now = this.ctx.currentTime + idx * 0.12;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, now);
 
-      gain.gain.setValueAtTime(0.09, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      gain.gain.setValueAtTime(0.07, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
 
       osc.connect(gain);
       gain.connect(this.masterGain);
-      gain.connect(delay); // 딜레이 라인에 동시 공급
 
       osc.start(now);
-      osc.stop(now + 0.42);
+      osc.stop(now + 0.3);
     });
   }
 
-  // 5) 위기/치명타/균열 (육중한 심해 수압 폭쇄음 & 먹먹한 로우패스 감쇠)
+  // 5) 다음 구역 진입 (기압이 낮아지는 듯한 하행 2음)
+  playStageTransition() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    const notes = [293.66, 220]; // D4 → A3
+    notes.forEach((freq, idx) => {
+      const now = this.ctx.currentTime + idx * 0.2;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    });
+  }
+
+  // 6) 위기/치명타/균열 (육중한 저음 충격과 먹먹한 로우패스 감쇠)
   playDanger() {
     if (!this.enabled) return;
     this.init();
@@ -202,7 +210,7 @@ class AquariumAudioEngine {
     osc.stop(now + 0.62);
   }
 
-  // 6) 심장 박동 (수밀 격벽 폐쇄 / 질식 직전 심해 펄스)
+  // 7) 심장 박동 (수밀 격벽 폐쇄 / 질식 직전의 저음 펄스)
   playHeartbeat() {
     if (!this.enabled) return;
     this.init();
@@ -230,7 +238,7 @@ class AquariumAudioEngine {
     });
   }
 
-  // 7) 고압 누전 및 유리 균열 수중 스파크
+  // 8) 고압 누전 및 유리 균열 스파크
   playGlitch() {
     if (!this.enabled) return;
     this.init();
@@ -264,7 +272,7 @@ class AquariumAudioEngine {
     noise.start(now);
   }
 
-  // [신규] 8) 심해 잠수 앰비언스 루프 토글 (수류 & 공기 방울 험 노이즈)
+  // 9) 심해 잠수 앰비언스 루프 토글 (현재 게임플레이에서는 사용하지 않음)
   startUnderwaterAmbience() {
     if (!this.enabled || this.ambientNodes) return;
     this.init();

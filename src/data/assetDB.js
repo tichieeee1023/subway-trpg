@@ -8,7 +8,7 @@ export const CHARACTER_PORTRAITS = Object.fromEntries(
 );
 
 export const SCENE_ASSETS = {
-  INTRO: { src: asset('scenes/scene_000_op.webp'), alt: '심야 지하철 생존기 오프닝' },
+  INTRO: { src: asset('scenes/scene_000_op.webp'), alt: '심야 지하철: 사라진 다음역 오프닝' },
   PROLOGUE_TRAIN: { src: asset('scenes/scene_prologue_train.webp'), alt: '비 내리는 자정, 00시 37분 막차가 역사로 들어온다' },
   BLACKOUT: { src: asset('scenes/scene_00_blackout.webp'), alt: '급정거와 함께 암전되는 심야 지하철' },
   STAGE_1_CAR6: { src: asset('scenes/scene_01_shedding.webp'), alt: '승객이 사라지고 옷가지만 남은 6호차' },

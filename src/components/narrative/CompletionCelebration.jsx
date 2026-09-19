@@ -59,10 +59,30 @@ export default function CompletionCelebration({ active, disableEffects, onFinish
     {!disableEffects && <canvas ref={canvasRef} className="completion-canvas" aria-hidden="true" />}
     <div className="completion-scan" aria-hidden="true" />
     <section className="completion-terminal">
-      <header className="completion-header"><span>ARCHIVE STATUS</span><strong>COMPLETE</strong></header>
-      <div className="completion-score"><span>ALL ENDINGS</span><strong>6 / 6</strong></div>
-      <div className="completion-main"><p className="completion-code">MIDNIGHT SUBWAY // FINAL RECORD DECLASSIFIED</p><h2>THANK YOU FOR PLAYING</h2><h3>심야 서브웨이: 마지막 역의 기록</h3><p className="completion-copy">마지막 칸의 문을 지나, 숨겨진 기록까지 확인해 주셔서 감사합니다.<br />당신은 무사히 지상으로 돌아왔습니다.</p></div>
-      <footer className="completion-footer"><div className="completion-signoff"><span>DESIGN &amp; DEVELOPMENT</span><strong>Lee YJ</strong></div><p className="completion-final-line">00:37 AM · SURVIVOR RECORD CLOSED</p></footer>
+      <header className="completion-header">
+        <span>MIDNIGHT SUBWAY // ARCHIVE COMPLETE</span>
+        <strong>06 / 06</strong>
+      </header>
+
+      <figure className="completion-visual">
+        <img
+          className="completion-art"
+          src="/assets/scenes/completion-subway.webp"
+          alt="새벽빛이 비치는 지하철역 출구와 지상으로 돌아온 생존자들"
+        />
+        <figcaption>04:44 AM · SURFACE ACCESS GRANTED</figcaption>
+      </figure>
+
+      <div className="completion-thanks">
+        <h2>THANK YOU FOR PLAYING</h2>
+        <h3>심야 지하철: 사라진 다음역</h3>
+        <p className="completion-copy">숨겨진 마지막 기록까지 확인해 주셔서 감사합니다. 당신은 무사히 지상으로 돌아왔습니다.</p>
+      </div>
+
+      <footer className="completion-footer">
+        <p className="completion-final-line">FINAL RECORD DECLASSIFIED · 00:37 AM</p>
+        <div className="completion-signoff"><span>DESIGN &amp; DEVELOPMENT</span><strong>Lee YJ</strong></div>
+      </footer>
     </section>
   </div>;
 }
