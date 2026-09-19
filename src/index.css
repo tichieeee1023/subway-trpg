@@ -271,6 +271,10 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 .credits-list dt, .credits-list dd { margin: 0; }
 .credits-list dd { color: #d2dbd6; font-size: 15px; line-height: 1.5; }
 .credits-footnote { margin: 20px 0 0; color: #8b9b9d; font: 13px var(--story-font) !important; }
+.credits-links { display: flex; justify-content: flex-end; margin-top: 8px; }
+.credits-source-link { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 10px; border: 1px solid #405257; background: #11181c; color: #9facab; font: 11px var(--story-font); letter-spacing: .06em; text-decoration: none; box-shadow: 2px 2px #030609; }
+.credits-source-link:hover, .credits-source-link:focus-visible { border-color: #bea565; color: #f0d58b; }
+.credits-source-link:focus-visible { outline: 2px solid #f0d58b; outline-offset: 2px; }
 @keyframes ending-card-reveal { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes ending-copy-reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes ending-signal-noise { 50% { transform: translateY(2px); opacity: .16; } }
